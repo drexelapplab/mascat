@@ -2,6 +2,7 @@ import os
 import time
 import urllib2
 from slackclient import SlackClient
+from enum import Enum
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -10,6 +11,10 @@ AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
 
 MONTH_DICT = { '1':'January', '2':'February', '3':'March', '4':'April', '5':'May', '6':'June', '7':'July', '8':'August', '9':'September', '10':'October', '11':'November', '12':'December' }
+
+class Action(Enum):
+	redirect = 1
+	event = 2
 
 #instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
@@ -24,20 +29,22 @@ def parse_slack_output(slack_rtm_output):
 	output_list = slack_rtm_output
 	if output_list and len(output_list) > 0:
 		for output in output_list:
-			if output and 'channel' in output:
+			if output and 'channel' in output and output['user'] != BOT_ID:
+				print(output)
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
 				if ch['ok'] == False and gr['ok'] == False:
 					is_im = True
 				else:
 					is_im = False	
-				print(is_im)
-			if output and 'text' in output and AT_BOT in output['text'] and not is_im:
-				print(output['user'])
-				print(output['channel'])
-				return output['user'], output['channel']
-			print(output['type'])
-	return None,None
+				if output and 'text' in output and AT_BOT in output['text'] and not is_im:
+					print(output['user'])
+					print(output['channel'])
+					return output['user'], output['channel'], Action.redirect
+				elif is_im and output and 'text' in output and 'event' in output['text']:
+					return output['user'], output['channel'], Action.event
+				print(output['type'])
+	return None,None,None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
 # as in "January, February".
@@ -73,9 +80,9 @@ def parse_time(time_string):
 	return first_part + last_part
 	
 # Gets all events and sends notifications of all of them to the user.
-def getEvents():
+def getEvents(user):
 	data = urllib2.urlopen("https://docs.google.com/spreadsheets/d/1uKLG9WQOLwQ56dewfKFZDwehy_vs0EXN1jXfdMmNbwY/pub?gid=224197384&single=true&output=tsv")
-	user = "U034LKGHE"
+	# user = "U034LKGHE"
 	# user = "U04JCJPLY"
 	first = True
 	for row in data:
@@ -97,14 +104,15 @@ def herd_to_dm(user, channel):
 	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 if __name__ == "__main__":
-	getEvents()
 	READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
 	if slack_client.rtm_connect():
 		print("Mascat connected and running.")
 		while True:
-			user, channel = parse_slack_output(slack_client.rtm_read())
-			if user and channel:
+			user, channel, action = parse_slack_output(slack_client.rtm_read())
+			if user and channel and action == Action.redirect:
 				herd_to_dm(user, channel)
+			elif user and channel and action == Action.event:
+				getEvents(user)
 			time.sleep(READ_WEBSOCKET_DELAY)
 	else:
 		print("Connection failed. Invalid Slack token or bot ID?")
