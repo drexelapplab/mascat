@@ -36,7 +36,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/applabadmin/Desktop/mascat/mascat"
+set -gx VIRTUAL_ENV "/Users/applabadmin/Google Drive/APP Lab/App Development/mascat/mascat"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
