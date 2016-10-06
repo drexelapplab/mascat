@@ -24,8 +24,17 @@ def parse_slack_output(slack_rtm_output):
 	output_list = slack_rtm_output
 	if output_list and len(output_list) > 0:
 		for output in output_list:
-			if 'upload' in output and output['upload'] == True:
+			if output and 'channel' in output:
+				ch = slack_client.api_call("channels.info", channel=output['channel'])
+				gr = slack_client.api_call("groups.info", channel=output['channel'])
+				if ch['ok'] == False and gr['ok'] == False:
+					is_im = True
+				else:
+					is_im = False	
+				print(is_im)
+			if output and 'text' in output and AT_BOT in output['text'] and not is_im:
 				print(output['user'])
+				print(output['channel'])
 				return output['user'], output['channel']
 			print(output['type'])
 	return None,None
@@ -83,6 +92,10 @@ def getEvents():
 			
 			message_one(out,user)
 
+def herd_to_dm(user, channel):
+	response = "Baby, we can talk, but not here. Send me a DM."
+	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+
 if __name__ == "__main__":
 	getEvents()
 	READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
@@ -90,8 +103,8 @@ if __name__ == "__main__":
 		print("Mascat connected and running.")
 		while True:
 			user, channel = parse_slack_output(slack_client.rtm_read())
+			if user and channel:
+				herd_to_dm(user, channel)
 			time.sleep(READ_WEBSOCKET_DELAY)
 	else:
 		print("Connection failed. Invalid Slack token or bot ID?")
-
-
