@@ -19,6 +19,7 @@ class Action(Enum):
 	card = 5
 	conference = 6
 	restroom = 7
+	payroll = 8
 
 MONTH_DICT = \
 { 	
@@ -40,8 +41,8 @@ GENERIC_DICT = \
 {
 	1:"I'm just a cat. Can't do everything.", 
 	2:"What.", 
-	3:"Say that again, but slower.", 
-	4:"I don't have real ears, so I have no idea what you just said.", 
+	3:"Say that again, but slower. I'm tired.", 
+	4:"I don't have real ears so I have no idea what you just said.", 
 	5:"Hipchat wouldn't ask me to do this.", 
 	6:"Don't feel like it.", 
 	7:"Ask me later.", 
@@ -89,22 +90,25 @@ def parse_slack_output(slack_rtm_output):
 				else:
 					is_im = False	
 				if 'text' in output:
-					if not is_im and AT_BOT in output['text']:
+					text = output['text'].lower()
+					if not is_im and AT_BOT.lower() in text:
 						return output['user'], output['channel'], Action.redirect
 					elif is_im:
-						if 'event' in output['text'].lower():
+						if 'event' in text:
 							return output['user'], output['channel'], Action.event
-						elif 'print' in output['text'].lower():
+						elif 'print' in text:
 							return output['user'], output['channel'], Action.printing
-						elif 'card' in output['text'].lower():
+						elif 'card' in text:
 							return output['user'], output['channel'], Action.card
-						elif 'conference' in output['text'].lower():
+						elif 'conference' in text:
 							return output['user'], output['channel'], Action.conference
-						elif 'restroom' in output['text'].lower() or 'bathroom' in output['text'].lower():
+						elif 'restroom' in text or 'bathroom' in text:
 							return output['user'], output['channel'], Action.restroom
+						elif 'payroll' in text:
+							return output['user'], output['channel'], Action.payroll
 						else:
 							return output['user'], output['channel'], Action.generic
-				print(output['type'])
+				#print(output['type'])
 	return None,None,None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
@@ -193,6 +197,7 @@ ACTION_DICT = \
 	Action.card:"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
 	Action.conference:"Ye can't get ye conference room.",
 	Action.restroom:"The men's bathroom code is [3] and [4] simultaneously, followed by [1]. The women's bathroom doesn't have a password.",
+	Action.payroll:"Payroll problems? Fill <https://files.slack.com/files-pri/T0257SBSW-F2LNMHC3W/payroll_resolution_form-open_with_pro.pdf|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
 	Action.generic:"bad"
 }
 
