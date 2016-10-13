@@ -20,6 +20,13 @@ class Action(Enum):
 	conference = 6
 	restroom = 7
 	payroll = 8
+	prout = 9
+	dragonfly = 10
+	airplay = 11
+	extension = 12
+	hours = 13
+	tour = 14
+	kitchen = 15
 
 MONTH_DICT = \
 { 	
@@ -100,12 +107,26 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.printing
 						elif 'card' in text:
 							return output['user'], output['channel'], Action.card
+						elif 'conference' in text and ('extension' in text or 'phone' in text):
+							return output['user'], output['channel'], Action.extension
 						elif 'conference' in text:
 							return output['user'], output['channel'], Action.conference
 						elif 'restroom' in text or 'bathroom' in text:
 							return output['user'], output['channel'], Action.restroom
 						elif 'payroll' in text:
 							return output['user'], output['channel'], Action.payroll
+						elif 'prout' in text:
+							return output['user'], output['channel'], Action.prout
+						elif 'dragonfly' in text or 'nea' in text or 'internet' in text:
+							return output['user'], output['channel'], Action.dragonfly
+						elif 'airplay' in text or 'display' in text:
+							return output['user'], output['channel'], Action.airplay
+						elif 'hours' in text:
+							return output['user'], output['channel'], Action.hours
+						elif 'tour' in text:
+							return output['user'], output['channel'], Action.tour
+						elif 'kitchen' in text:
+							return output['user'], output['channel'], Action.kitchen
 						else:
 							return output['user'], output['channel'], Action.generic
 				#print(output['type'])
@@ -195,10 +216,17 @@ ACTION_DICT = \
 	Action.event:"bad",
 	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
 	Action.card:"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
-	Action.conference:"Ye can't get ye conference room.",
+	Action.conference:"byrnhildr y siegfred",
 	Action.restroom:"The men's bathroom code is [3] and [4] simultaneously, followed by [1]. The women's bathroom doesn't have a password.",
 	Action.payroll:"Payroll problems? Fill <https://files.slack.com/files-pri/T0257SBSW-F2LNMHC3W/payroll_resolution_form-open_with_pro.pdf|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
-	Action.generic:"bad"
+	Action.generic:"bad",
+	Action.prout:"The public Repository of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but non-ExCITe personnel need approval.",
+	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
+	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. You must be on the 'ExciteResearch' network to use it. Contact <@U04JCJPLY|Lauren> if something's not working.",
+	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231 - CALL#2:215.571.4494",
+	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need to get in off regular hours, contact <@U04JCJPLY|Lauren> about getting an access card.",
+	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, how many people will be expected. Also add information about age if the tour is for a school group.",
+	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back."
 }
 
 
