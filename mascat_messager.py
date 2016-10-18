@@ -72,7 +72,8 @@ GENERIC_DICT = \
 	11:"Want to play video games instead?",
 	12:"Let's do karaoke instead.",
 	13:"...I'm hungry.",
-	14:"Try asking someone else."
+	14:"Try asking someone else.",
+	15:"Miaou. /giphy cat"
 }
 
 GREETING_DICT = \
@@ -103,7 +104,7 @@ def parse_slack_output(slack_rtm_output):
 	if output_list and len(output_list) > 0:
 		for output in output_list:
 			if output and 'type' in output:
-				print(output['type'])
+				#print(output['type'])
 
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
