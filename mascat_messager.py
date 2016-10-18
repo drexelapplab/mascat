@@ -185,9 +185,11 @@ def message_all(message_text):
 		slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=message_text, as_user=True)
 
 # Sends a message to one person on a slack team.
-def message_one(message_text, user_id):
+def messageOne(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
-	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=message_text, as_user=True)
+	response = message_text
+	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=True)
+	print(response +"\n")
 
 def messageOneWithGreeting(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
@@ -312,7 +314,7 @@ if __name__ == "__main__":
 				elif action == Action.event:
 					getEvents(user)
 				elif action == Action.generic:
-					messageOneWithGreeting(getGenericResponse(),user)
+					messageOne(getGenericResponse(),user)
 				else:
 					messageOneWithGreeting(MESSAGE_DICT[action],user)
 			time.sleep(READ_WEBSOCKET_DELAY)
