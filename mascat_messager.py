@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import time
 import urllib2
@@ -71,15 +73,24 @@ GENERIC_DICT = \
 	10:"I'm not really alive.", 
 	11:"Want to play video games instead?",
 	12:"Let's do karaoke instead.",
-	13:"Мияу-мияу. _(TN: Мияу-мияу means meow)_".decode('utf-8'),
+	13:"Let's play fighter.",
 	14:"Try asking someone else.",
-	15:"I don't care."
+	15:"I don't care.",
 	16:"Meong.",
 	17:"Miau.",
 	18:"Mjau.",
 	19:"Miaou.",
-	20:"喵喵. _(TN: 喵喵 means meow)_".decode('utf-8'),
-	21:":moo:"
+	20:"喵喵.",
+	21:"ニャー.",
+	22:"야옹.",
+	23:"Мияу-мияу.",
+	24:"Mjá.",
+	25:"Meow.",
+	26:"מְיָאוּ.",
+	27:".مُواَء",
+	28:"เมี้ยว.",
+	29:"Miao.",
+	30:":moo:"
 }
 
 SUFFIX_DICT = \
@@ -235,7 +246,7 @@ def getEvents(user):
 			#slack_client.api_call("users.info", user=user)['user']['profile']['first_name']
 				
 			out = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ", *" + month + " " + day + ", " + year + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
-			message_one(out,user)
+			messageOne(out,user)
 		else:
 			comps =  row.split("\t")
 			month,day,year = parse_date(comps[2])
@@ -243,13 +254,13 @@ def getEvents(user):
 			location = location.rstrip('.')
 				
 			out = "Also, *" + month + " " + day + ", " + year + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
-			message_one(out,user)
+			messageOne(out,user)
 
 def herd_to_dm(user, channel, response):
 	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def getGenericResponse():
-	response = GENERIC_DICT[random.randint(1,len(GENERIC_DICT)]
+	response = GENERIC_DICT[random.randint(1,len(GENERIC_DICT))]
 	return response;
 
 MESSAGE_DICT = \
