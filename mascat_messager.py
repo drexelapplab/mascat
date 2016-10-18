@@ -2,8 +2,12 @@ import os
 import time
 import urllib2
 import random
+import datetime
+import csv
 from slackclient import SlackClient
 from enum import Enum
+import shutil
+import question_node
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -11,7 +15,12 @@ BOT_ID = os.environ.get("BOT_ID")
 AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
 
+#global
+CURRENT_TIME = datetime.date.today()
+PREVIOUS_REMINDER_DATE = datetime.date.today()
+
 class Action(Enum):
+	# Mascat message actions
 	generic = 1
 	redirect = 2
 	event = 3
@@ -27,6 +36,10 @@ class Action(Enum):
 	hours = 13
 	tour = 14
 	kitchen = 15
+
+	# Mascat non message actions
+	newUser = 101
+	remind = 102
 
 MONTH_DICT = \
 { 	
@@ -89,7 +102,13 @@ def parse_slack_output(slack_rtm_output):
 	output_list = slack_rtm_output
 	if output_list and len(output_list) > 0:
 		for output in output_list:
-			if output and 'channel' in output and output['user'] != BOT_ID:
+
+			# Mascat noticing a new user
+			if output and 'type' in output and output['type'] == "team_join":
+				return output['user'], None, Action.newUser
+
+			# Mascat deciding what to say
+			elif output and 'channel' in output and output['user'] != BOT_ID:
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
 				if ch['ok'] == False and gr['ok'] == False:
@@ -164,7 +183,7 @@ def message_one(message_text, user_id):
 
 def messageOneWithGreeting(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
-	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ". " + message_text, as_user=True)
+	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=getGreetingResponse() + " " + slack_client.api_call("users.info", user=user_id)['user']['profile']['first_name'] + ". " + message_text, as_user=True)
 
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
@@ -210,7 +229,7 @@ def getGenericResponse():
 	response = GENERIC_DICT[random.randint(1,14)]
 	return response;
 
-ACTION_DICT = \
+MESSAGE_DICT = \
 {
 	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
 	Action.event:"bad",
@@ -225,9 +244,20 @@ ACTION_DICT = \
 	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. You must be on the 'ExciteResearch' network to use it. Contact <@U04JCJPLY|Lauren> if something's not working.",
 	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231 - CALL#2:215.571.4494",
 	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need to get in off regular hours, contact <@U04JCJPLY|Lauren> about getting an access card.",
-	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, how many people will be expected. Also add information about age if the tour is for a school group.",
+	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
 	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back."
 }
+
+def newUser(user):
+	tsvFile = open("new_users.tsv", "a")
+	out = csv.writer(tsvFile, delimiter='\t')
+	out.writerow([user,CURRENT_TIME.strftime("%Y%m%d")])
+	tsvFile.close()
+
+def initaliseQuestions():
+	card2 = questionnode(None,"",None)
+	card0 = questionnode(None,"Do you want a building card or an ExCITe card?",None)
+
 
 
 if __name__ == "__main__":
@@ -235,16 +265,47 @@ if __name__ == "__main__":
 	if slack_client.rtm_connect():
 		print("Mascat connected and running.")
 		while True:
+
+			# See how many days it's been since the last date update.
+			time_delta = datetime.date.today() - CURRENT_TIME
+			# If it's been at least a day, update the date and
+			# check if we need to greet any recent new users.
+			if time_delta.days > 0:
+				print("New Day")
+				CURRENT_TIME = datetime.date.today()
+
+				with open('new_users.tsv', 'rb') as fin, open('temp.tsv', 'wb') as fout:
+					writer = csv.writer(fout, delimiter="\t")
+					for row in csv.reader(fin, delimiter="\t"):
+						if (CURRENT_TIME - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
+							messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions. You've got the touch.",row[0])
+						else:
+							writer.writerow(row)
+				shutil.copy("temp.tsv","new_users.tsv")
+				os.remove("temp.tsv")
+
+			time_delta = datetime.date.today() - PREVIOUS_REMINDER_DATE
+			if time_delta.days > 28:
+				print("New Month")
+				# ADD POST TO GENERAL BOARD ABOUT EXISTANCE
+
+
 			user, channel, action = parse_slack_output(slack_client.rtm_read())
-			if user and channel:
+
+			if user and action and action.value > 100:
+				if action == Action.newUser:
+					newUser(user)
+
+			elif user and action and action.value <= 100:
 				if action == Action.redirect:
-					herd_to_dm(user,channel,ACTION_DICT[action])
+					herd_to_dm(user,channel,MESSAGE_DICT[action])
 				elif action == Action.event:
 					getEvents(user)
 				elif action == Action.generic:
 					messageOneWithGreeting(getGenericResponse(),user)
+					newUser(user)
 				else:
-					messageOneWithGreeting(ACTION_DICT[action],user)
+					messageOneWithGreeting(MESSAGE_DICT[action],user)
 			time.sleep(READ_WEBSOCKET_DELAY)
 	else:
 		print("Connection failed. Invalid Slack token or bot ID?")
