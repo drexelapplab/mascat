@@ -71,9 +71,20 @@ GENERIC_DICT = \
 	10:"I'm not really alive.", 
 	11:"Want to play video games instead?",
 	12:"Let's do karaoke instead.",
-	13:"...I'm hungry.",
+	13:"Мияу-мияу. _(TN: Мияу-мияу means meow)_".decode('utf-8'),
 	14:"Try asking someone else.",
-	15:"/giphy cat"
+	15:"I don't care."
+	16:"Meong.",
+	17:"Miau.",
+	18:"Mjau.",
+	19:"Miaou.",
+	20:"喵喵. _(TN: 喵喵 means meow)_".decode('utf-8'),
+	21:":moo:"
+}
+
+SUFFIX_DICT = \
+{
+	1:""
 }
 
 GREETING_DICT = \
@@ -174,7 +185,7 @@ def parse_date(date_string):
 	return month, day, year	
 
 def getGreetingResponse():
-	response = GREETING_DICT[random.randint(1,7)]
+	response = GREETING_DICT[random.randint(1,len(GREETING_DICT))]
 	return response;
 	
 # Sends a message to everyone on the slack team.
@@ -238,7 +249,7 @@ def herd_to_dm(user, channel, response):
 	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def getGenericResponse():
-	response = GENERIC_DICT[random.randint(1,15)]
+	response = GENERIC_DICT[random.randint(1,len(GENERIC_DICT)]
 	return response;
 
 MESSAGE_DICT = \
