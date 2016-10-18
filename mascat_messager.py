@@ -73,7 +73,7 @@ GENERIC_DICT = \
 	12:"Let's do karaoke instead.",
 	13:"...I'm hungry.",
 	14:"Try asking someone else.",
-	15:"Miaou. /giphy cat"
+	15:"/giphy cat"
 }
 
 GREETING_DICT = \
@@ -127,7 +127,7 @@ def parse_slack_output(slack_rtm_output):
 					if not is_im and AT_BOT.lower() in text:
 						return output['user'], output['channel'], Action.redirect
 					elif is_im:
-						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + " " + consoletext)
+						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						if 'event' in text:
 							return output['user'], output['channel'], Action.event
 						elif 'print' in text:
@@ -193,7 +193,7 @@ def messageOneWithGreeting(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
 	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user_id)['user']['profile']['first_name'] + ". " + message_text
 	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=True)
-	print(response)
+	print(response +"\n")
 
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
