@@ -126,7 +126,7 @@ def parse_slack_output(slack_rtm_output):
 					if not is_im and AT_BOT.lower() in text:
 						return output['user'], output['channel'], Action.redirect
 					elif is_im:
-						print(slack_client.api_call("users.info", user=user_id)['user']['name'] + " " + consoletext)
+						print(slack_client.api_call("users.info", user=user)['user']['name'] + " " + consoletext)
 						if 'event' in text:
 							return output['user'], output['channel'], Action.event
 						elif 'print' in text:
