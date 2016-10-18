@@ -236,7 +236,7 @@ def herd_to_dm(user, channel, response):
 	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def getGenericResponse():
-	response = GENERIC_DICT[random.randint(1,14)]
+	response = GENERIC_DICT[random.randint(1,15)]
 	return response;
 
 MESSAGE_DICT = \
