@@ -102,24 +102,31 @@ def parse_slack_output(slack_rtm_output):
 	output_list = slack_rtm_output
 	if output_list and len(output_list) > 0:
 		for output in output_list:
+			if output and 'type' in output:
+				print(output['type'])
 
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
+				print("NEW USER " + output['user'])
 				return output['user'], None, Action.newUser
 
 			# Mascat deciding what to say
 			elif output and 'channel' in output and output['user'] != BOT_ID:
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
+
 				if ch['ok'] == False and gr['ok'] == False:
 					is_im = True
 				else:
 					is_im = False	
+
 				if 'text' in output:
+					consoletext = output['text']
 					text = output['text'].lower()
 					if not is_im and AT_BOT.lower() in text:
 						return output['user'], output['channel'], Action.redirect
 					elif is_im:
+						print(slack_client.api_call("users.info", user=user_id)['user']['name'] + " " + consoletext)
 						if 'event' in text:
 							return output['user'], output['channel'], Action.event
 						elif 'print' in text:
@@ -183,7 +190,9 @@ def message_one(message_text, user_id):
 
 def messageOneWithGreeting(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
-	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=getGreetingResponse() + " " + slack_client.api_call("users.info", user=user_id)['user']['profile']['first_name'] + ". " + message_text, as_user=True)
+	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user_id)['user']['profile']['first_name'] + ". " + message_text
+	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=True)
+	print(response)
 
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
@@ -303,7 +312,6 @@ if __name__ == "__main__":
 					getEvents(user)
 				elif action == Action.generic:
 					messageOneWithGreeting(getGenericResponse(),user)
-					newUser(user)
 				else:
 					messageOneWithGreeting(MESSAGE_DICT[action],user)
 			time.sleep(READ_WEBSOCKET_DELAY)
