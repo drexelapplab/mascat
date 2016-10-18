@@ -103,7 +103,7 @@ def parse_slack_output(slack_rtm_output):
 	output_list = slack_rtm_output
 	if output_list and len(output_list) > 0:
 		for output in output_list:
-			if output and 'type' in output:
+			#if output and 'type' in output:
 				#print(output['type'])
 
 			# Mascat noticing a new user
