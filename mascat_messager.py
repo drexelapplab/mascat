@@ -178,7 +178,6 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.tour
 						elif 'kitchen' in text:
 							return output['user'], output['channel'], Action.kitchen
-
 						elif 'hello' in text or 'hi' in text or 'hey' in text:
 							return output['user'], output['channel'], Action.hello
 						else:
@@ -272,18 +271,18 @@ def hello(user):
 	time = datetime.datetime.now().time()
 	if time.hour >= 6 and time.hour < 12:
 		time_text = "It's a nice morning today."
-	elif time.hour >= 12 and time.hour < 4:
+	elif time.hour >= 12 and time.hour < 16:
 		time_text = "Are you the type of person to get tired after lunch?"
-	elif time.hour >= 4 and time.hour < 10:
+	elif time.hour >= 16 and time.hour < 22:
 		time_text = "Isn't it almost time to go home?"
 	else:
 		time_text = "Lovely evening."
-	response = "Hello. " + slack_client.api_call("users.info", user=user)['user']['profile']['last_name'] + ". " + time_text
+	response = "Hello.\n" + slack_client.api_call("users.info", user=user)['user']['profile']['last_name'] + ".\n" + time_text
 	messageOne(response,user)
 
 MESSAGE_DICT = \
 {
-	Action.hello:"bad"
+	Action.hello:"bad",
 	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
 	Action.event:"bad",
 	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
