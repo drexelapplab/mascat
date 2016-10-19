@@ -104,11 +104,8 @@ GREETING_DICT = \
 {
 	1:"Hi",
 	2:"Hey",
-	3:"I'll help you out",
-	4:"Yo",
-	5:"Oh, it's",
-	6:"Ok,",
-	7:"Sure,"
+	3:"Yo",
+	4:"Hoy"
 }
 
 
@@ -271,25 +268,30 @@ MORNING_DICT = \
 {
 	1:"It's too early in the morning for me.",
 	2:"Did you eat breakfast?"
+	3:"I wanted to sleep in."
 }
 
 NOON_DICT = \
 {
 	1:"Do you ever get tired after lunch?",
 	2:"What did you eat for lunch?"
+	3:"Look at you, still at it. You're my role model."
 }
 
 LATE_DICT = \
 {
 	1:"Isn't it almost time to go home?",
-	2:"Is the sun setting?"
+	2:"Is the sun setting?",
+	3:"What are you getting for dinner?",
+	4:"In a perfect world, I'd eat salmon roe every night."
 }
 
 NIGHT_DICT = \
 {
 	1:"What are you waking me up so late for.",
 	2:"Take it easy, yeah?",
-	3:"Getting a full night's of rest is important, don't stay up too long. :moo:"
+	3:"Getting a full night's rest is important, don't stay up too long. :moo:",
+	4:"Something you need this late?"
 }
 
 def hello(user):
@@ -302,7 +304,8 @@ def hello(user):
 		time_text = LATE_DICT[random.randint(1,len(LATE_DICT))]
 	else:
 		time_text = NIGHT_DICT[random.randint(1,len(NIGHT_DICT))]
-	response = "Hello. " + slack_client.api_call("users.info", user=user)['user']['profile']['last_name'] + ".\n" + time_text
+
+	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ". ( ˊ-ˋ)ノ\n" + time_text
 	messageOne(response,user)
 
 MESSAGE_DICT = \
