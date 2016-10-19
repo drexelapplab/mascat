@@ -132,8 +132,8 @@ def parse_slack_output(slack_rtm_output):
 
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
-				print("NEW USER " + output['user'] + "\n")
-				return output['user'], None, Action.newUser
+				print("NEW USER " + str(output['user']) + "\n")
+				return str(output['user']), None, Action.newUser
 
 			# Mascat deciding what to say
 			elif output and 'channel' in output and output['user'] != BOT_ID:
@@ -267,17 +267,42 @@ def getGenericResponse():
 	response = GENERIC_DICT[random.randint(1,len(GENERIC_DICT))]
 	return response;
 
+MORNING_DICT = \
+{
+	1:"It's too early in the morning for me.",
+	2:"Did you eat breakfast?"
+}
+
+NOON_DICT = \
+{
+	1:"Do you ever get tired after lunch?",
+	2:"What did you eat for lunch?"
+}
+
+LATE_DICT = \
+{
+	1:"Isn't it almost time to go home?",
+	2:"Is the sun setting?"
+}
+
+NIGHT_DICT = \
+{
+	1:"What are you waking me up so late for.",
+	2:"Take it easy, yeah?",
+	3:"Getting a full night's of rest is important, don't stay up too long. :moo:"
+}
+
 def hello(user):
 	time = datetime.datetime.now().time()
 	if time.hour >= 6 and time.hour < 12:
-		time_text = "It's a nice morning today."
+		time_text = MORNING_DICT[random.randint(1,len(MORNING_DICT))]
 	elif time.hour >= 12 and time.hour < 16:
-		time_text = "Are you the type of person to get tired after lunch?"
+		time_text = NOON_DICT[random.randint(1,len(NOON_DICT))]
 	elif time.hour >= 16 and time.hour < 22:
-		time_text = "Isn't it almost time to go home?"
+		time_text = LATE_DICT[random.randint(1,len(LATE_DICT))]
 	else:
-		time_text = "Lovely evening."
-	response = "Hello.\n" + slack_client.api_call("users.info", user=user)['user']['profile']['last_name'] + ".\n" + time_text
+		time_text = NIGHT_DICT[random.randint(1,len(NIGHT_DICT))]
+	response = "Hello. " + slack_client.api_call("users.info", user=user)['user']['profile']['last_name'] + ".\n" + time_text
 	messageOne(response,user)
 
 MESSAGE_DICT = \
