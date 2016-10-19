@@ -267,14 +267,14 @@ def getGenericResponse():
 MORNING_DICT = \
 {
 	1:"It's too early in the morning for me.",
-	2:"Did you eat breakfast?"
+	2:"Did you eat breakfast?",
 	3:"I wanted to sleep in."
 }
 
 NOON_DICT = \
 {
 	1:"Do you ever get tired after lunch?",
-	2:"What did you eat for lunch?"
+	2:"What did you eat for lunch?",
 	3:"Look at you, still at it. You're my role model."
 }
 
