@@ -73,7 +73,7 @@ GENERIC_DICT = \
 	10:"I'm not really alive.", 
 	11:"Want to play video games instead?",
 	12:"Let's do karaoke instead.",
-	13:"Let's play fighter.",
+	13:"Let's play fighter. Winner stays, loser pays.",
 	14:"Try asking someone else.",
 	15:"I don't care.",
 	16:"Meong.",
@@ -130,7 +130,7 @@ def parse_slack_output(slack_rtm_output):
 
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
-				print("NEW USER " + output['user'])
+				print("NEW USER " + output['user'] + "\n")
 				return output['user'], None, Action.newUser
 
 			# Mascat deciding what to say
@@ -289,13 +289,14 @@ def newUser(user):
 	tsvFile.close()
 
 def initaliseQuestions():
-	card2 = questionnode(None,"",None)
-	card0 = questionnode(None,"Do you want a building card or an ExCITe card?",None)
+	card2 = questionnode(None,"So you want an ExCITe card. What is your First Name?",None)
+	card1 = questionnode(None,"So you want a building card. What is your First Name?",None)
+	card0 = questionnode(None,"Do you want a building card or an ExCITe card?",{"building":card1,"excite":card2})
 
 
 
 if __name__ == "__main__":
-	READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
+	READ_WEBSOCKET_DELAY = 0.2 # 1 second delay between reading from firehose
 	if slack_client.rtm_connect():
 		print("Mascat connected and running.")
 		while True:
@@ -305,7 +306,7 @@ if __name__ == "__main__":
 			# If it's been at least a day, update the date and
 			# check if we need to greet any recent new users.
 			if time_delta.days > 0:
-				print("New Day")
+				print("New Day\n")
 				CURRENT_TIME = datetime.date.today()
 
 				with open('new_users.tsv', 'rb') as fin, open('temp.tsv', 'wb') as fout:
@@ -320,7 +321,7 @@ if __name__ == "__main__":
 
 			time_delta = datetime.date.today() - PREVIOUS_REMINDER_DATE
 			if time_delta.days > 28:
-				print("New Month")
+				print("New Month\n")
 				# ADD POST TO GENERAL BOARD ABOUT EXISTANCE
 
 
