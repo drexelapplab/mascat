@@ -305,7 +305,9 @@ def hello(user):
 	else:
 		time_text = NIGHT_DICT[random.randint(1,len(NIGHT_DICT))]
 
-	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ". ( ˊ-ˋ)ノ\n" + time_text
+	emoticon = u"( ˊ-ˋ)ノ".encode("utf8")
+	print emoticon
+	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ". \n" + time_text
 	messageOne(response,user)
 
 MESSAGE_DICT = \
