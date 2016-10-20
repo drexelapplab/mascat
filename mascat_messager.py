@@ -43,6 +43,7 @@ class Action(Enum):
 	applab = 16
 
 	hello = 99
+	pretty = 100
 
 	# Mascat non message actions
 	newUser = 101
@@ -94,13 +95,7 @@ GENERIC_DICT = \
 	26:"מְיָאוּ.",
 	27:".مُواَء",
 	28:"เมี้ยว.",
-	29:"Miao.",
-	30:":moo:"
-}
-
-SUFFIX_DICT = \
-{
-	1:""
+	29:"Miao."
 }
 
 GREETING_DICT = \
@@ -139,6 +134,15 @@ NIGHT_DICT = \
 	2:"Take it easy, yeah?",
 	3:"Getting a full night's rest is important, don't stay up too long.",
 	4:"Something you need this late?"
+}
+
+EMOTICON_DICT = \
+{
+	1:"(  ˊ - ˋ)ノ thanks...",
+	2:"\\(^o^)/",
+	3:":moo:",
+	4:"(:϶_∠)_",
+	5:"*ᴛʜᴀɴᴋ ʏᴏᴜ*"
 }
 	
 
@@ -212,6 +216,8 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.applab
 						elif 'hello' in text or 'hi' in text or 'hey' in text:
 							return output['user'], output['channel'], Action.hello
+						elif 'pretty' in text:
+							return output['user'], output['channel'], Action.pretty
 						else:
 							return output['user'], output['channel'], Action.generic
 				#print(output['type'])
@@ -313,9 +319,8 @@ def hello(user):
 	else:
 		time_text = NIGHT_DICT[random.randint(1,len(NIGHT_DICT))]
 
-	emoticon = u"( ˊ-ˋ)ノ".encode("utf8")
-	print emoticon
-	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ". \n" + time_text
+	
+	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ".\n" + time_text
 	messageOne(response,user)
 
 MESSAGE_DICT = \
@@ -379,7 +384,8 @@ if __name__ == "__main__":
 			if CURRENT_DATE.month != PREVIOUS_REMINDER_DATE.month:
 				print("New Month\n")
 				PREVIOUS_REMINDER_DATE = CURRENT_DATE
-				messageChannel("Attención. Soy Mascat y tú amigo.",GENERAL_CHANNEL)
+				#Attención. Soy Mascat y tú amigo.
+				messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",GENERAL_CHANNEL)
 
 			try:
 				user, channel, action = parse_slack_output(slack_client.rtm_read())
@@ -396,6 +402,8 @@ if __name__ == "__main__":
 						messageOne(getGenericResponse(),user)
 					elif action == Action.hello:
 						hello(user)
+					elif action == Action.pretty:
+						messageOne(EMOTICON_DICT[random.randint(1,len(EMOTICON_DICT))],user)
 					else:
 						messageOneWithGreeting(MESSAGE_DICT[action],user)
 			except SocketError as e:
