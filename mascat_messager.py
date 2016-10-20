@@ -10,6 +10,7 @@ from slackclient import SlackClient
 from enum import Enum
 import shutil
 import question_node
+from socket import error as SocketError
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -18,7 +19,7 @@ AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
 
 #global
-CURRENT_TIME = datetime.date.today()
+CURRENT_DATE = datetime.date.today()
 PREVIOUS_REMINDER_DATE = datetime.date.today()
 
 class Action(Enum):
@@ -38,6 +39,7 @@ class Action(Enum):
 	hours = 13
 	tour = 14
 	kitchen = 15
+	applab = 16
 
 	hello = 99
 
@@ -108,7 +110,35 @@ GREETING_DICT = \
 	4:"Hoy"
 }
 
+MORNING_DICT = \
+{
+	1:"It's too early in the morning for me.",
+	2:"Did you eat breakfast?",
+	3:"I wanted to sleep in."
+}
 
+NOON_DICT = \
+{
+	1:"Do you ever get tired after lunch?",
+	2:"What did you eat for lunch?",
+	3:"Look at you, still at it. You're my role model."
+}
+
+LATE_DICT = \
+{
+	1:"Isn't it almost time to go home?",
+	2:"Is the sun setting?",
+	3:"What are you getting for dinner?",
+	4:"In a perfect world, I'd eat salmon roe every night."
+}
+
+NIGHT_DICT = \
+{
+	1:"What are you waking me up so late for.",
+	2:"Take it easy, yeah?",
+	3:"Getting a full night's rest is important, don't stay up too long.",
+	4:"Something you need this late?"
+}
 	
 
 #instantiate Slack client
@@ -130,6 +160,7 @@ def parse_slack_output(slack_rtm_output):
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
 				print("NEW USER " + str(output['user']) + "\n")
+				print(output["user"] + "\n")
 				return str(output['user']), None, Action.newUser
 
 			# Mascat deciding what to say
@@ -175,6 +206,8 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.tour
 						elif 'kitchen' in text:
 							return output['user'], output['channel'], Action.kitchen
+						elif 'applab' in text or 'app lab' in text:
+							return output['user'], output['channel'], Action.applab
 						elif 'hello' in text or 'hi' in text or 'hey' in text:
 							return output['user'], output['channel'], Action.hello
 						else:
@@ -230,8 +263,6 @@ def parse_time(time_string):
 # Gets all events and sends notifications of all of them to the user.
 def getEvents(user):
 	data = urllib2.urlopen("https://docs.google.com/spreadsheets/d/1uKLG9WQOLwQ56dewfKFZDwehy_vs0EXN1jXfdMmNbwY/pub?gid=224197384&single=true&output=tsv")
-	# user = "U034LKGHE"
-	# user = "U04JCJPLY"
 	first = True
 	second = True
 	for row in data:
@@ -263,36 +294,6 @@ def herd_to_dm(user, channel, response):
 def getGenericResponse():
 	response = GENERIC_DICT[random.randint(1,len(GENERIC_DICT))]
 	return response;
-
-MORNING_DICT = \
-{
-	1:"It's too early in the morning for me.",
-	2:"Did you eat breakfast?",
-	3:"I wanted to sleep in."
-}
-
-NOON_DICT = \
-{
-	1:"Do you ever get tired after lunch?",
-	2:"What did you eat for lunch?",
-	3:"Look at you, still at it. You're my role model."
-}
-
-LATE_DICT = \
-{
-	1:"Isn't it almost time to go home?",
-	2:"Is the sun setting?",
-	3:"What are you getting for dinner?",
-	4:"In a perfect world, I'd eat salmon roe every night."
-}
-
-NIGHT_DICT = \
-{
-	1:"What are you waking me up so late for.",
-	2:"Take it easy, yeah?",
-	3:"Getting a full night's rest is important, don't stay up too long. :moo:",
-	4:"Something you need this late?"
-}
 
 def hello(user):
 	time = datetime.datetime.now().time()
@@ -327,13 +328,14 @@ MESSAGE_DICT = \
 	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231 - CALL#2:215.571.4494",
 	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need to get in off regular hours, contact <@U04JCJPLY|Lauren> about getting an access card.",
 	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
-	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back."
+	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
+	Action.applab:":brandon: JOIN :brandon: APPLAB :brandon: COME :brandon: TO :brandon: APPY :brandon: HOUR :brandon:"
 }
 
 def newUser(user):
 	tsvFile = open("new_users.tsv", "a")
 	out = csv.writer(tsvFile, delimiter='\t')
-	out.writerow([user,CURRENT_TIME.strftime("%Y%m%d")])
+	out.writerow([user,CURRENT_DATE.strftime("%Y%m%d")])
 	tsvFile.close()
 
 def initaliseQuestions():
@@ -350,46 +352,49 @@ if __name__ == "__main__":
 		while True:
 
 			# See how many days it's been since the last date update.
-			time_delta = datetime.date.today() - CURRENT_TIME
+			date_delta = datetime.date.today() - CURRENT_DATE
 			# If it's been at least a day, update the date and
 			# check if we need to greet any recent new users.
-			if time_delta.days > 0:
+			if date_delta.days > 0 and datetime.datetime.now().time().hour >= 9:
 				print("New Day\n")
-				CURRENT_TIME = datetime.date.today()
+				CURRENT_DATE = datetime.date.today()
 
 				with open('new_users.tsv', 'rb') as fin, open('temp.tsv', 'wb') as fout:
 					writer = csv.writer(fout, delimiter="\t")
 					for row in csv.reader(fin, delimiter="\t"):
-						if (CURRENT_TIME - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
+						if (CURRENT_DATE - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
 							messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions. You've got the touch.",row[0])
 						else:
 							writer.writerow(row)
 				shutil.copy("temp.tsv","new_users.tsv")
 				os.remove("temp.tsv")
 
-			time_delta = datetime.date.today() - PREVIOUS_REMINDER_DATE
-			if time_delta.days > 28:
+			date_delta = datetime.date.today() - PREVIOUS_REMINDER_DATE
+			if date_delta.days > 28:
 				print("New Month\n")
 				# ADD POST TO GENERAL BOARD ABOUT EXISTANCE
 
+			try:
+				user, channel, action = parse_slack_output(slack_client.rtm_read())
+				if user and action and action.value > 100:
+					if action == Action.newUser:
+						newUser(user)
 
-			user, channel, action = parse_slack_output(slack_client.rtm_read())
+				elif user and action and action.value <= 100:
+					if action == Action.redirect:
+						herd_to_dm(user,channel,MESSAGE_DICT[action])
+					elif action == Action.event:
+						getEvents(user)
+					elif action == Action.generic:
+						messageOne(getGenericResponse(),user)
+					elif action == Action.hello:
+						hello(user)
+					else:
+						messageOneWithGreeting(MESSAGE_DICT[action],user)
+			except SocketError as e:
+				pass
 
-			if user and action and action.value > 100:
-				if action == Action.newUser:
-					newUser(user)
-
-			elif user and action and action.value <= 100:
-				if action == Action.redirect:
-					herd_to_dm(user,channel,MESSAGE_DICT[action])
-				elif action == Action.event:
-					getEvents(user)
-				elif action == Action.generic:
-					messageOne(getGenericResponse(),user)
-				elif action == Action.hello:
-					hello(user)
-				else:
-					messageOneWithGreeting(MESSAGE_DICT[action],user)
+			
 
 			
 			time.sleep(READ_WEBSOCKET_DELAY)
