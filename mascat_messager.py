@@ -17,6 +17,7 @@ BOT_ID = os.environ.get("BOT_ID")
 #constants
 AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
+GENERAL_CHANNEL = "C0257SBTA"
 
 #global
 CURRENT_DATE = datetime.date.today()
@@ -159,12 +160,13 @@ def parse_slack_output(slack_rtm_output):
 
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
+				print(output)
 				print("NEW USER " + str(output['user']) + "\n")
 				print(output["user"] + "\n")
 				return str(output['user']), None, Action.newUser
 
 			# Mascat deciding what to say
-			elif output and 'channel' in output and output['user'] != BOT_ID:
+			elif output and 'channel' in output and 'user' in output and output['user'] != BOT_ID:
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
 
@@ -253,6 +255,11 @@ def messageOneWithGreeting(message_text, user_id):
 	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=True)
 	print(response +"\n")
 
+def messageChannel(message_text, channel_id):
+	response = "Attención. Soy Mascat y tú amigo."
+	slack_client.api_call("chat.postMessage", channel=channel_id, text=message_text, as_user=True)
+	print(response +"\n")
+
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
 	first_part = ":".join(time_string.split(":")[:2])
@@ -329,7 +336,7 @@ MESSAGE_DICT = \
 	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need to get in off regular hours, contact <@U04JCJPLY|Lauren> about getting an access card.",
 	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
 	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
-	Action.applab:":brandon: JOIN :brandon: APPLAB :brandon: COME :brandon: TO :brandon: APPY :brandon: HOUR :brandon:"
+	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks."
 }
 
 def newUser(user):
@@ -369,10 +376,10 @@ if __name__ == "__main__":
 				shutil.copy("temp.tsv","new_users.tsv")
 				os.remove("temp.tsv")
 
-			date_delta = datetime.date.today() - PREVIOUS_REMINDER_DATE
-			if date_delta.days > 28:
+			if CURRENT_DATE.month != PREVIOUS_REMINDER_DATE.month:
 				print("New Month\n")
-				# ADD POST TO GENERAL BOARD ABOUT EXISTANCE
+				PREVIOUS_REMINDER_DATE = CURRENT_DATE
+				messageChannel("Attención. Soy Mascat y tú amigo.",GENERAL_CHANNEL)
 
 			try:
 				user, channel, action = parse_slack_output(slack_client.rtm_read())
