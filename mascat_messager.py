@@ -51,18 +51,18 @@ class Action(Enum):
 
 MONTH_DICT = \
 { 	
-	'1':'January', 
-	'2':'February',
-	'3':'March',
-	'4':'April',
-	'5':'May',
-	'6':'June',
-	'7':'July',
-	'8':'August',
-	'9':'September',
-	'10':'October',
-	'11':'November',
-	'12':'December' 
+	1:'January', 
+	2:'February',
+	3:'March',
+	4:'April',
+	5:'May',
+	6:'June',
+	7:'July',
+	8:'August',
+	9:'September',
+	10:'October',
+	11:'November',
+	12:'December' 
 }
 
 GENERIC_DICT = \
@@ -227,15 +227,8 @@ def parse_slack_output(slack_rtm_output):
 # as in "January, February".
 def parse_date(date_string):
 	list = date_string.split("/")
-	try:
-		month = MONTH_DICT[list[0]]
-	except KeyError:
-		month = ""
-	day = list[1]
-	if int(day) > 31 and int(day) < 1:
-		day = ""
-	year = list[2]
-	return month, day, year	
+	date = datetime.date(int(list[2]),int(list[0]),int(list[1]))
+	return date
 
 def getGreetingResponse():
 	response = GREETING_DICT[random.randint(1,len(GREETING_DICT))]
@@ -285,21 +278,24 @@ def getEvents(user):
 		elif second:
 			second = False
 			comps =  row.split("\t")
-			month,day,year = parse_date(comps[2])
-			location = comps[4].decode('utf-8')
-			location = location.rstrip('.')
-			#slack_client.api_call("users.info", user=user)['user']['profile']['first_name']
+			date = parse_date(comps[2])
+			if date > CURRENT_DATE:
+				location = comps[4].decode('utf-8')
+				location = location.rstrip('.')
+				#slack_client.api_call("users.info", user=user)['user']['profile']['first_name']
 				
-			out = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ", *" + month + " " + day + ", " + year + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
-			messageOne(out,user)
+				out = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ", *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
+				messageOne(out,user)
+			
 		else:
 			comps =  row.split("\t")
-			month,day,year = parse_date(comps[2])
-			location = comps[4].decode('utf-8')
-			location = location.rstrip('.')
+			date = parse_date(comps[2])
+			if date > CURRENT_DATE:
+				location = comps[4].decode('utf-8')
+				location = location.rstrip('.')
 				
-			out = "Also, *" + month + " " + day + ", " + year + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
-			messageOne(out,user)
+				out = "Also, *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
+				messageOne(out,user)
 
 def herd_to_dm(user, channel, response):
 	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
