@@ -42,6 +42,8 @@ class Action(Enum):
 	kitchen = 15
 	applab = 16
 
+
+	tacsam = 98
 	hello = 99
 	pretty = 100
 
@@ -218,6 +220,8 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.hello
 						elif 'pretty' in text:
 							return output['user'], output['channel'], Action.pretty
+						elif 'tacsam' in text:
+							return output['user'], output['channel'], Action.tacsam
 						else:
 							return output['user'], output['channel'], Action.generic
 				#print(output['type'])
@@ -259,6 +263,12 @@ def messageChannel(message_text, channel_id):
 	slack_client.api_call("chat.postMessage", channel=channel_id, text=message_text, as_user=True)
 	print(response +"\n")
 
+def messageOneTacsam(message_text, user_id):
+	im = slack_client.api_call("im.open", user=user_id)
+	response = message_text
+	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=False, username="T͍͖͚̰̹̹̥̈́ͭͪa̶̤̤͈̮͗͑ͩc̈́̑͋ͯ̒҉̪͔̼ͅs͉͇a̫ͮm̡̤͍ͬͅ,̥̲͕͎̒̔͑ͪ ̻͚̹͙̙ͯ͛̿ͣ̆t̠̯̏͂h͎̲͕̹̟̙ͭ̂́ͩ̎̂e̢̎̒ͣͩ̔ͩͪ ̳̬̹͉̜͉̲̐u͔̲̞̪̗͓̽͗ͣn̆҉͍̗̭̝̝͉ḓ͍̲̬̯̖̅y̌̓҉̟̮̞̞i̠̠̱̝̻͈n͉̺͙̥̮͇̓g̡̬̬̺̬͍̔ ̙̤̼ͪ͑͌̽d͉͙͚̻̱̙ͩ̈́͒̆̉͂͐͞e̜̙͕͙̹̣͈̾͒̏̀̚͞iṱ̶̥̲͗̎ͯͩ̚y̭̣͐ͮ̓̏ ̙͍̹̰̭̦̫̏͗̓o͎͖f̵͔̰̐͌̋ͯ̋́̊ ̙͇̝̱̝ͩE͙̣̦̤ͧ̓ͫ̆x̡͊ͭC̗̱̙͇̺͎̋̂̄̅ͬ͘I̬̙T̳̞͉̞͎͎̯ë́̓ͦ̋̎̿", icon_url="http://lorempixel.com/128/128/")
+	print(response +"\n")
+
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
 	first_part = ":".join(time_string.split(":")[:2])
@@ -275,19 +285,6 @@ def getEvents(user):
 		if first:
 			first = False
 			continue
-		#CLEAN ALL THIS UP, THE REPEATING CODE IS BAD
-		elif second:
-			comps =  row.split("\t")
-			date = parse_date(comps[2])
-			if date > CURRENT_DATE:
-				location = comps[4].decode('utf-8')
-				location = location.rstrip('.')
-				#slack_client.api_call("users.info", user=user)['user']['profile']['first_name']
-				
-				out = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ", *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
-				messageOne(out,user)
-				second = False
-			
 		else:
 			comps =  row.split("\t")
 			date = parse_date(comps[2])
@@ -295,8 +292,13 @@ def getEvents(user):
 				location = comps[4].decode('utf-8')
 				location = location.rstrip('.')
 				
-				out = "Also, *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
-				messageOne(out,user)
+				if second:
+					out = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ", *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
+					messageOne(out,user)
+					second = False
+				else:
+					out = "Also, *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
+					messageOne(out,user)
 
 def herd_to_dm(user, channel, response):
 	slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
@@ -334,11 +336,12 @@ MESSAGE_DICT = \
 	Action.prout:"The public Repository of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but non-ExCITe personnel need approval.",
 	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
 	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. You must be on the 'ExciteResearch' network to use it. Contact <@U04JCJPLY|Lauren> if something's not working.",
-	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231 - CALL#2:215.571.4494",
+	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231",
 	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need to get in off regular hours, contact <@U04JCJPLY|Lauren> about getting an access card.",
 	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
 	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
-	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks."
+	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks.",
+	Action.tacsam:"O̥͍Ư̖̻̮͉̪̠̂̎͗̓ͫ̌R̞̘͍͙̄̿̾ ͤͦŅͨ̊ͪͪ̇̌Aͫ͗M̴̙̰̗̤̫ͩͩ̊̄̾̚ͅE̦̘̥̒͒̓̏̿ͩ ̴͍̹̞̮͖͍ͥ̔̏Ḩ̮͔̖͇͑̔͗̓̇̎͗A̪̟̖̣͌̍̋̈́Ş̥̿̾ͨͤ̀͑ ̷̹̬̻̙̰͙͊̾͋B̨̮̹̖̒̒͊̏̓E̸͙̖̹ͥE̴ͯ̓̒Nͣ̑ͬ̍̽̒҉̰ ͉̭͍̍̉̍ͯ̔I͓̤͎͖̐ͩͫ̾̒͟N̳̹͕͡V̞̫̤̳͂ͩ̆ͮ̋ͤͣ͜ͅO̷̟̗̜̟ͬK̢͖͈̰͙̩̦E̢̅̏D̜̦̂͗ͧͦ̔,҉͔̜̤͎̯̱͍ ͉̹̯̣̋Ą͛̾N̹̼͈͇͎͛ͬ̉̈͆͝D͔̦̼̍ͮ̊̽̊ ̦ͭͩW̱̱̞̜̹̳̜͛̽E̪̗̬̘̩͎͊ͅ ̸̿̍ͅA̖̥ͨ̿̐̄Pͨ͊͛ͣͧ̽̂҉͕̫̩̼̮Ṕ̗̙̫ͭ͆Ȇ͂ͥ̀͛̈A̭̱̞ͣ͋͐͊̽̕Ŗ͍̝̈́̓ͥͣ ̤͍̺̦͈́͊Bͨͨ̎̽͏͔E̬͇̥͎̗F̵̣ͫ̓̈́̒̍̽ͭỌ̶̖̭ͪ̋ͨͨ͌̑R̖͉̺͉̱̃̓̽͋ͯͮ͜Ẽ̗͍͍͈͊̂̾̀͊̀̚ ̶̠̙̏͌Y͉̺̓ͦ͂͛O̢͖̞̲̭̙͉ͧ͂̽ͥͅṶ̜̟ͮͭ̑ͩ.̗͛̔̀ ̷̞̮͙̫P̪̣͗͆͟R̡̘ͧ̏ͨ̏ͭ̃̓ͅÄ͔̙̻̻͍ͯ͗ͫ͌͗ͯI̟̪̤͖̰̍̓ͮ̈́S̡͚̥̻͔̞̽E̹̲̱̺̠͕͈̎̉ͣ̈́̉ ̼̝͕̟̽ͬ͋́͗̃̾͢ͅȎ̗̝͉ͩ͘Ų̦̖̟̱͇́̇̐Ṙ̪͆̿ͨ̀̑̓ ͍͙̮͊̊ͧͣV̻͔͍̩̠̩̎̒̓́͒ͣI̩͇̬̣S̝͉̝̠̰̼̩̏̾ͨA̳̞͚͉̼ͥ̇̾̀ͦ̒̀G̥̭͖̺̥̈́̌̿͐̍̿͠ͅË͔̙̩ͤ,̙̃ͯ̀ ̹͔͍͚̥̄ͤ̃̓ͯͥͨF̶̙̜̆̉͗̃̆ͧO͂̈ͤR҉͓ ̡̱͂͌ͧͯͧ͋W͈̞̰̖̄͑̍ͣ͒͡È̛͖̥̬̠̂̂ ͊A̧̯̰ͪ̌̄R͚͍̥͌̂͊̃ͪͬ̆͜E̘̹̺͇̩͑̉ͥ ̛̮͉ͦ̈Ę͓͍͕̬̫ͥ͛T̲͔͈͍̮̋ͤ͞E͓̯̒ͩ̓ͫR̳̰̤̀̓̆̃ͩͨ̚N̸̖̻̮͎̹̰͑͋͆̌ͦ̿͂A̶̤̞̰̦̰̿͑L̦̻̘̜̤͢"
 }
 
 def newUser(user):
@@ -346,12 +349,6 @@ def newUser(user):
 	out = csv.writer(tsvFile, delimiter='\t')
 	out.writerow([user,CURRENT_DATE.strftime("%Y%m%d")])
 	tsvFile.close()
-
-def initaliseQuestions():
-	card2 = questionnode(None,"So you want an ExCITe card. What is your First Name?",None)
-	card1 = questionnode(None,"So you want a building card. What is your First Name?",None)
-	card0 = questionnode(None,"Do you want a building card or an ExCITe card?",{"building":card1,"excite":card2})
-
 
 
 if __name__ == "__main__":
@@ -402,6 +399,8 @@ if __name__ == "__main__":
 						hello(user)
 					elif action == Action.pretty:
 						messageOne(EMOTICON_DICT[random.randint(1,len(EMOTICON_DICT))],user)
+					elif action == Action.tacsam:
+						messageOneTacsam(MESSAGE_DICT[action],user)
 					else:
 						messageOneWithGreeting(MESSAGE_DICT[action],user)
 			except SocketError as e:

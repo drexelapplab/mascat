@@ -1,5 +1,7 @@
 /mascat
 /Icon
+/new_users.tsv
+/client_secret.tsv
 
 .DS_Store
 .DS_Store?
@@ -8,4 +10,4 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+*.json
