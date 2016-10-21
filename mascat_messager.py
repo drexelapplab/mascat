@@ -355,7 +355,7 @@ def initaliseQuestions():
 
 
 if __name__ == "__main__":
-	READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
+	READ_WEBSOCKET_DELAY = 0.2 # 1 second delay between reading from firehose
 	if slack_client.rtm_connect():
 		print("Mascat connected and running.")
 		while True:
