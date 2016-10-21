@@ -275,8 +275,8 @@ def getEvents(user):
 		if first:
 			first = False
 			continue
+		#CLEAN ALL THIS UP, THE REPEATING CODE IS BAD
 		elif second:
-			second = False
 			comps =  row.split("\t")
 			date = parse_date(comps[2])
 			if date > CURRENT_DATE:
@@ -286,6 +286,7 @@ def getEvents(user):
 				
 				out = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ", *" + MONTH_DICT[date.month] + " " + str(date.day) + ", " + str(date.year) + ", " + parse_time(comps[3]) + "* will be *" + comps[1].decode('utf-8') + "*!\n" + comps[5].decode('utf-8') + "\n The event will be held at *" + location  + "*.\n"
 				messageOne(out,user)
+				second = False
 			
 		else:
 			comps =  row.split("\t")
@@ -354,10 +355,11 @@ def initaliseQuestions():
 
 
 if __name__ == "__main__":
-	READ_WEBSOCKET_DELAY = 0.2 # 1 second delay between reading from firehose
+	READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
 	if slack_client.rtm_connect():
 		print("Mascat connected and running.")
 		while True:
+			slack_client.api_call("ping")
 
 			# See how many days it's been since the last date update.
 			date_delta = datetime.date.today() - CURRENT_DATE
