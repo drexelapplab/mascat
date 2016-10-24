@@ -229,7 +229,8 @@ def parse_slack_output(slack_rtm_output):
 						else:
 							return output['user'], output['channel'], Action.generic
 			if output['type'] != "presence_change" and output['type'] != "reconnect_url":
-				print(output + "\n")	
+				print(output)
+				print("\n")	
 	return None,None,None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
