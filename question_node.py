@@ -1,38 +1,36 @@
 import os
 
 class questionnode:
-	entry_words = []
-	prompt = ""
-	paths = {}
+	question = ""
+	acceptable_answers = None
+	next_node = None
 
-	def __init__(self,e,p,c):
-		self.entry_words = e
-		self.prompt = p
-		self.paths = c
+	def __init__(self,question,aanswers=None):
+		self.question = question
+		self.acceptable_answers = aanswers
 
-	def getPrompt():
-		return self.prompt
+	def getQuestion():
+		return self.question
 
-	def setPrompt(s):
-		self.prompt = s
+	def setQuestion(self,s):
+		self.question = s
 
-	def getEntryWords():
-		return self.entry_words
+	def getAcceptableAnswers():
+		return self.acceptable_answers
 
-	def setEntryWords(a):
-		self.entry_words = a
+	def setAcceptableAnswers(self,a):
+		self.acceptable_answers = a
 
-	def getChildNodes():
-		return self.paths
+	def getNextNode():
+		return self.next_node
 
-	def setChildNodes(d):
-		self.paths = ds
+	def setNextNode(self,d):
+		self.next_node = d
 
-	def askQuestion():
-		return self.prompt
-
-	def handleAnswer(s):
-		if(isinstance(self.paths[s], questionnode)):
-			f
-		elif(isinstance(self.paths[s], Action)):
-			f
+	def handleAnswer(self,sin,lout):
+		if self.acceptable_answers is None:
+			lout.append(sin)
+		elif sin in self.acceptable_answers:
+			lout.append(sin)
+		else:
+			return 0

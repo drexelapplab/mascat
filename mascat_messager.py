@@ -9,7 +9,8 @@ import csv
 from slackclient import SlackClient
 from enum import Enum
 import shutil
-import question_node
+import question_node as qn
+import linked_list as ll
 from socket import error as SocketError
 from oauth2client.service_account import ServiceAccountCredentials
 from apiclient.discovery import build
@@ -21,11 +22,12 @@ BOT_ID = os.environ.get("BOT_ID")
 #constants
 AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
-GENERAL_CHANNEL = "C0257SBTA"
 
 #global
 CURRENT_DATE = datetime.date.today()
 PREVIOUS_REMINDER_DATE = datetime.date.today()
+
+LINKED_QUESTION_DICT = {}
 
 class Action(Enum):
 	# Mascat message actions
@@ -54,6 +56,13 @@ class Action(Enum):
 	# Mascat non message actions
 	newUser = 101
 	remind = 102
+
+CHANNEL_DICT = \
+{
+	'general':'C0257SBTA',
+	'orange':'',
+	'grey':''
+}
 
 MONTH_DICT = \
 { 	
@@ -228,10 +237,35 @@ def parse_slack_output(slack_rtm_output):
 						#	return output['user'], output['channel'], Action.tacsam
 						else:
 							return output['user'], output['channel'], Action.generic
-			if output['type'] != "presence_change" and output['type'] != "reconnect_url":
+			if output['type'] != "presence_change" and output['type'] != "reconnect_url" and output['type'] != "pong":
 				print(output)
-				print("\n")	
+				print("")	
 	return None,None,None
+
+def parse_slack_output_for_linked_question(slack_rtm_output):
+	output_list = slack_rtm_output
+	if output_list and len(output_list) > 0:
+		for output in output_list:
+
+			if output and 'channel' in output and 'user' in output and output['user'] != BOT_ID:
+				ch = slack_client.api_call("channels.info", channel=output['channel'])
+				gr = slack_client.api_call("groups.info", channel=output['channel'])
+
+				if ch['ok'] == False and gr['ok'] == False:
+					is_im = True
+				else:
+					is_im = False	
+
+				if 'text' in output:
+					consoletext = output['text']
+					text = output['text'].lower()
+					if is_im:
+						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
+						return output['text']
+			if output['type'] != "presence_change" and output['type'] != "reconnect_url" and output['type'] != "pong":
+				print(output)
+				print("")	
+	return None,None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
 # as in "January, February".
@@ -328,14 +362,75 @@ def hello(user):
 	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ".\n" + time_text
 	messageOne(response,user)
 
+
+
+def newUser(user):
+	tsvFile = open("new_users.tsv", "a")
+	out = csv.writer(tsvFile, delimiter='\t')
+	out.writerow([user,CURRENT_DATE.strftime("%Y%m%d")])
+	tsvFile.close()
+
+def calendar():
+	scopes = ['https://www.googleapis.com/auth/calendar']
+	credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
+	http_auth = credentials.authorize(Http())
+	service = build('calendar', 'v3', http=http_auth)
+
+	calendar = {
+		'summary':'OrangeReservations',
+		'timeZone':'America/New_York'
+	}
+
+	#orange = service.calendars().insert(body=calendar).execute()
+	#print orange['id']
+
+def initaliseQuestionCard():
+	card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building?",['excite', 'building'])
+	card1 = qn.questionnode("What is your first name?")
+	card2 = qn.questionnode("What is your last name?")
+	card3 = qn.questionnode("If you have a Drexel ID, what is it?")
+	card0.setNextNode(card1)
+	card1.setNextNode(card2)
+	card2.setNextNode(card3)
+	card = ll.linkedlist(card0)
+	LINKED_QUESTION_DICT["card"] = card
+	return LINKED_QUESTION_DICT['card']
+
+def initaliseQuestionConference():
+	conference0 = qn.questionnode("Trying to book a conference room? Do you want Orange or Grey?")
+	conference1 = qn.questionnode("What day do you want the room?")
+	conference2 = qn.questionnode("What times do you want the room?")
+	conference0.setNextNode(conference1)
+	conference1.setNextNode(conference2)
+	conference = ll.linkedlist(conference0)
+	LINKED_QUESTION_DICT["conference"] = conference
+	return LINKED_QUESTION_DICT['conference']
+
+def doLinkedQuestion(linked_question,user_id):
+	answer_box = []
+	messageOne(linked_question.head.question,user_id)
+	try:
+		time.sleep(5)
+		text = parse_slack_output(slack_client.rtm_read())
+		if linked_question.head.handleAnswer(text,answer_box) == 0:
+			doLinkedQuestion(linked_question,user_id)
+		else:
+			doLinkedQuestion(linked_question.next())
+
+		
+	except SocketError as e:
+		pass
+
+
 MESSAGE_DICT = \
 {
 	Action.hello:"bad",
 	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
 	Action.event:"bad",
 	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
-	Action.card:"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
-	Action.conference:"byrnhildr y siegfred",
+	Action.card:initaliseQuestionCard(),
+	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
+	Action.conference:initaliseQuestionConference(),
 	Action.restroom:"The men's bathroom code is [3] and [4] simultaneously, followed by [1]. The women's bathroom doesn't have a password.",
 	Action.payroll:"Payroll problems? Fill <https://files.slack.com/files-pri/T0257SBSW-F2LNMHC3W/payroll_resolution_form-open_with_pro.pdf|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
 	Action.generic:"bad",
@@ -350,22 +445,8 @@ MESSAGE_DICT = \
 	#Action.tacsam:"O̥͍Ư̖̻̮͉̪̠̂̎͗̓ͫ̌R̞̘͍͙̄̿̾ ͤͦŅͨ̊ͪͪ̇̌Aͫ͗M̴̙̰̗̤̫ͩͩ̊̄̾̚ͅE̦̘̥̒͒̓̏̿ͩ ̴͍̹̞̮͖͍ͥ̔̏Ḩ̮͔̖͇͑̔͗̓̇̎͗A̪̟̖̣͌̍̋̈́Ş̥̿̾ͨͤ̀͑ ̷̹̬̻̙̰͙͊̾͋B̨̮̹̖̒̒͊̏̓E̸͙̖̹ͥE̴ͯ̓̒Nͣ̑ͬ̍̽̒҉̰ ͉̭͍̍̉̍ͯ̔I͓̤͎͖̐ͩͫ̾̒͟N̳̹͕͡V̞̫̤̳͂ͩ̆ͮ̋ͤͣ͜ͅO̷̟̗̜̟ͬK̢͖͈̰͙̩̦E̢̅̏D̜̦̂͗ͧͦ̔,҉͔̜̤͎̯̱͍ ͉̹̯̣̋Ą͛̾N̹̼͈͇͎͛ͬ̉̈͆͝D͔̦̼̍ͮ̊̽̊ ̦ͭͩW̱̱̞̜̹̳̜͛̽E̪̗̬̘̩͎͊ͅ ̸̿̍ͅA̖̥ͨ̿̐̄Pͨ͊͛ͣͧ̽̂҉͕̫̩̼̮Ṕ̗̙̫ͭ͆Ȇ͂ͥ̀͛̈A̭̱̞ͣ͋͐͊̽̕Ŗ͍̝̈́̓ͥͣ ̤͍̺̦͈́͊Bͨͨ̎̽͏͔E̬͇̥͎̗F̵̣ͫ̓̈́̒̍̽ͭỌ̶̖̭ͪ̋ͨͨ͌̑R̖͉̺͉̱̃̓̽͋ͯͮ͜Ẽ̗͍͍͈͊̂̾̀͊̀̚ ̶̠̙̏͌Y͉̺̓ͦ͂͛O̢͖̞̲̭̙͉ͧ͂̽ͥͅṶ̜̟ͮͭ̑ͩ.̗͛̔̀ ̷̞̮͙̫P̪̣͗͆͟R̡̘ͧ̏ͨ̏ͭ̃̓ͅÄ͔̙̻̻͍ͯ͗ͫ͌͗ͯI̟̪̤͖̰̍̓ͮ̈́S̡͚̥̻͔̞̽E̹̲̱̺̠͕͈̎̉ͣ̈́̉ ̼̝͕̟̽ͬ͋́͗̃̾͢ͅȎ̗̝͉ͩ͘Ų̦̖̟̱͇́̇̐Ṙ̪͆̿ͨ̀̑̓ ͍͙̮͊̊ͧͣV̻͔͍̩̠̩̎̒̓́͒ͣI̩͇̬̣S̝͉̝̠̰̼̩̏̾ͨA̳̞͚͉̼ͥ̇̾̀ͦ̒̀G̥̭͖̺̥̈́̌̿͐̍̿͠ͅË͔̙̩ͤ,̙̃ͯ̀ ̹͔͍͚̥̄ͤ̃̓ͯͥͨF̶̙̜̆̉͗̃̆ͧO͂̈ͤR҉͓ ̡̱͂͌ͧͯͧ͋W͈̞̰̖̄͑̍ͣ͒͡È̛͖̥̬̠̂̂ ͊A̧̯̰ͪ̌̄R͚͍̥͌̂͊̃ͪͬ̆͜E̘̹̺͇̩͑̉ͥ ̛̮͉ͦ̈Ę͓͍͕̬̫ͥ͛T̲͔͈͍̮̋ͤ͞E͓̯̒ͩ̓ͫR̳̰̤̀̓̆̃ͩͨ̚N̸̖̻̮͎̹̰͑͋͆̌ͦ̿͂A̶̤̞̰̦̰̿͑L̦̻̘̜̤͢"
 }
 
-def newUser(user):
-	tsvFile = open("new_users.tsv", "a")
-	out = csv.writer(tsvFile, delimiter='\t')
-	out.writerow([user,CURRENT_DATE.strftime("%Y%m%d")])
-	tsvFile.close()
-
-def calendar():
-	scopes = ['https://www.googleapis.com/auth/sqlservice.admin']
-	credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
-	http_auth = credentials.authorize(Http())
-	service = build('calendar', 'v3', http=http_auth)
-
-
-
-
 if __name__ == "__main__":
+	#initaliseQuestions()
 	calendar()
 
 	PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
@@ -403,7 +484,7 @@ if __name__ == "__main__":
 				print("New Month\n")
 				PREVIOUS_REMINDER_DATE = CURRENT_DATE
 				#Attención. Soy Mascat y tú amigo.
-				messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",GENERAL_CHANNEL)
+				messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",CHANNEL_DICT['general'])
 
 			try:
 				user, channel, action = parse_slack_output(slack_client.rtm_read())
@@ -425,9 +506,12 @@ if __name__ == "__main__":
 					#elif action == Action.tacsam:
 					#	messageOneTacsam(MESSAGE_DICT[action],user)
 					else:
-						messageOneWithGreeting(MESSAGE_DICT[action],user)
-			except SocketError as e:
-				pass
+						if isinstance(action, str):
+							messageOneWithGreeting(MESSAGE_DICT[action],user)
+						else:
+							doLinkedQuestion(MESSAGE_DICT[action],user)
+			except WebSocketConnectionClosedException as e:
+				sack_client.rtm_connect()
 
 			
 
