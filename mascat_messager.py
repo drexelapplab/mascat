@@ -15,7 +15,7 @@ from socket import error as SocketError
 from oauth2client.service_account import ServiceAccountCredentials
 from apiclient.discovery import build
 from httplib2 import Http
-
+import websocket
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -380,6 +380,8 @@ def calendar():
 		'summary':'OrangeReservations',
 		'timeZone':'America/New_York'
 	}
+	print(service.calendarList().list().execute())
+
 
 	#orange = service.calendars().insert(body=calendar).execute()
 	#print orange['id']
@@ -449,17 +451,17 @@ if __name__ == "__main__":
 	#initaliseQuestions()
 	calendar()
 
-	PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
+	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
 	if slack_client.rtm_connect():
 
-		reads_to_ping = PING_FREQUENCY_DELAY
+		#reads_to_ping = PING_FREQUENCY_DELAY
 		print("Mascat connected and running.")
 		while True:
-			reads_to_ping -= 1
-			if reads_to_ping == 0:
-				slack_client.server.send_to_websocket({"id":1234, "type":"ping"})
-				reads_to_ping = PING_FREQUENCY_DELAY
+			#reads_to_ping -= 1
+			#if reads_to_ping == 0:
+			#	slack_client.server.send_to_websocket({"id":1234, "type":"ping"})
+			#	reads_to_ping = PING_FREQUENCY_DELAY
 
 
 			# See how many days it's been since the last date update.
