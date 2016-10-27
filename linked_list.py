@@ -9,8 +9,8 @@ class linkedlist:
 	def out():
 		return 
 
-	def next():
+	def next(self):
 		if self.head.getNextNode() != None:
-			return self.head.getNextNode()
+			self.head = self.head.getNextNode()
 		else:
-			return None
+			return 0

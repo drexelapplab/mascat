@@ -21,16 +21,25 @@ class questionnode:
 	def setAcceptableAnswers(self,a):
 		self.acceptable_answers = a
 
-	def getNextNode():
+	def getNextNode(self):
 		return self.next_node
 
 	def setNextNode(self,d):
 		self.next_node = d
 
 	def handleAnswer(self,sin,lout):
-		if self.acceptable_answers is None:
+		print("sin " + str(sin))
+		print(self.acceptable_answers)
+		if sin == None:
+			print "no answer"
+			return 0
+		elif self.acceptable_answers is None:
 			lout.append(sin)
+			print(lout)
 		elif sin in self.acceptable_answers:
+			print "good answer"
 			lout.append(sin)
+			print(lout)
 		else:
+			print "bad answer"
 			return 0

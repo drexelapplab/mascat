@@ -191,7 +191,7 @@ def parse_slack_output(slack_rtm_output):
 			if output and 'type' in output and output['type'] == "team_join":
 				print(output)
 				print("NEW USER " + str(output['user']) + "\n")
-				print(output["user"] + "\n")
+				print(str(output["user"]) + "\n")
 				return str(output['user']), None, Action.newUser
 
 			# Mascat deciding what to say
@@ -275,7 +275,7 @@ def parse_slack_output_for_linked_question(slack_rtm_output):
 			if output['type'] != "presence_change" and output['type'] != "reconnect_url" and output['type'] != "pong":
 				print(output)
 				print("")	
-	return None,None
+	return None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
 # as in "January, February".
@@ -430,16 +430,22 @@ def initaliseQuestionConference():
 	LINKED_QUESTION_DICT["conference"] = conference
 	return LINKED_QUESTION_DICT['conference']
 
-def doLinkedQuestion(linked_question,user_id):
+def sendResults(answer_box,question_type):
+	if(question_type == Action.card):
+		out = 
+
+def doLinkedQuestion(linked_question,user_id,question_type):
 	answer_box = []
 	messageOne(linked_question.head.question,user_id)
 	try:
-		time.sleep(5)
-		text = parse_slack_output(slack_client.rtm_read())
-		if linked_question.head.handleAnswer(text,answer_box) == 0:
-			doLinkedQuestion(linked_question,user_id)
-		else:
-			doLinkedQuestion(linked_question.next())
+		while True:
+			text = parse_slack_output_for_linked_question(slack_client.rtm_read())
+			if linked_question.head.handleAnswer(text,answer_box) != 0:
+				if(linked_question.next() != 0):
+					messageOne(linked_question.head.question,user_id)
+				else:
+					sendResults(answer_box,question_type)
+			time.sleep(1)
 
 		
 	except SocketError as e:
@@ -475,8 +481,7 @@ def calendarAddEvent(event_info,room):
 	    ],
 	  },
 	}
-
-	event = service.events().insert(calendarId='3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com', body=event).execute()
+	event = service.events().insert(calendarId=CONFERENCE_CALENDAR_DICT[room], body=event).execute()
 
 
 
@@ -567,7 +572,7 @@ if __name__ == "__main__":
 						if isinstance(MESSAGE_DICT[action], str):
 							messageOneWithGreeting(MESSAGE_DICT[action],user)
 						else:
-							doLinkedQuestion(MESSAGE_DICT[action],user)
+							doLinkedQuestion(MESSAGE_DICT[action],user,action)
 			except WebSocketConnectionClosedException as e:
 				sack_client.rtm_connect()
 
