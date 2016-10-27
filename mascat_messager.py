@@ -432,7 +432,7 @@ def initaliseQuestionConference():
 
 def sendResults(answer_box,question_type):
 	if(question_type == Action.card):
-		out = 
+		pass#FINISH FINISH FINISH
 
 def doLinkedQuestion(linked_question,user_id,question_type):
 	answer_box = []
