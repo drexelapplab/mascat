@@ -15,7 +15,7 @@ from socket import error as SocketError
 from oauth2client.service_account import ServiceAccountCredentials
 from apiclient.discovery import build
 from httplib2 import Http
-import websocket
+from websocket import *
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -156,8 +156,18 @@ EMOTICON_DICT = \
 	1:"(  ˊ - ˋ)ノ thanks...",
 	2:"\\(^o^)/",
 	3:":moo:",
-	4:"\\(:϶_∠)_",
-	5:"*ᴛʜᴀɴᴋ ʏᴏᴜ*"
+	4:"\\(:϶」∠)_",
+	5:"⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄",
+	6:"(σˋ▽ˊ)σ you are also the best!",
+	7:"( ≧‿≦)",
+	8:"(-﹏-。) p l s",
+	9:"(;¯⌓¯) you're embarassing me, please",
+	10:"┐( ´◟ `)┌ I cannot deny it"
+}
+
+CONFERENCE_CALENDAR_DICT = \
+{
+	"orange":"3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com"
 }
 	
 
@@ -380,7 +390,19 @@ def calendar():
 		'summary':'OrangeReservations',
 		'timeZone':'America/New_York'
 	}
+	#service.calendars().delete(calendarId='o44cmirs8sa8lj1c51catmqtbs@group.calendar.google.com').execute()
+	
+	rule = {
+	    'scope': {
+	        'type': 'default'
+	    },
+	    'role': 'reader'
+	}
+
+	#created_rule = service.acl().insert(calendarId='3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com', body=rule).execute()
+
 	print(service.calendarList().list().execute())
+
 
 
 	#orange = service.calendars().insert(body=calendar).execute()
@@ -422,6 +444,40 @@ def doLinkedQuestion(linked_question,user_id):
 		
 	except SocketError as e:
 		pass
+
+def calendarAddEvent(event_info,room):
+	# event_info: [summary, location, start, end]
+	event = {
+	  'summary': event_info[0],
+	  'location': event_info[1],
+	  'description': 'Conference Room Reservation',
+	  'start': {
+	    'dateTime': event_info[2],
+	    'timeZone': 'America/New_York',
+	  },
+	  'end': {
+	    'dateTime': event_info[3],#'2016-10-28T19:00:00-05:00'
+	    'timeZone': 'America/New_York',
+	  },
+	  'recurrence': [
+	    'RRULE:FREQ=DAILY;COUNT=1'
+	  ],
+	  'attendees': [
+	    {'email': 'lpage@example.com'},
+	    {'email': 'sbrin@example.com'},
+	  ],
+	  'colorId':'6',
+	  'reminders': {
+	    'useDefault': False,
+	    'overrides': [
+	      {'method': 'email', 'minutes': 24 * 60},
+	      {'method': 'popup', 'minutes': 10},
+	    ],
+	  },
+	}
+
+	event = service.events().insert(calendarId='3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com', body=event).execute()
+
 
 
 MESSAGE_DICT = \
@@ -508,7 +564,7 @@ if __name__ == "__main__":
 					#elif action == Action.tacsam:
 					#	messageOneTacsam(MESSAGE_DICT[action],user)
 					else:
-						if isinstance(action, str):
+						if isinstance(MESSAGE_DICT[action], str):
 							messageOneWithGreeting(MESSAGE_DICT[action],user)
 						else:
 							doLinkedQuestion(MESSAGE_DICT[action],user)
