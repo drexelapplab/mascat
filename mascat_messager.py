@@ -9,13 +9,13 @@ import csv
 from slackclient import SlackClient
 from enum import Enum
 import shutil
-import question_node as qn
-import linked_list as ll
+import questions
 from socket import error as SocketError
 from oauth2client.service_account import ServiceAccountCredentials
 from apiclient.discovery import build
 from httplib2 import Http
 from websocket import *
+import threading
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -82,35 +82,20 @@ MONTH_DICT = \
 
 GENERIC_DICT = \
 {
-	1:"I'm just a cat. Can't do everything.", 
-	2:"What.", 
-	3:"Say that again, but slower. I'm tired.", 
-	4:"I don't have real ears so I have no idea what you just said.", 
-	5:"Hipchat wouldn't ask me to do this.", 
-	6:"Don't feel like it.", 
-	7:"Ask me later.", 
-	8:"Can't be bothered to.", 
-	9:"I'll do it if you pay me.", 
-	10:"I'm not really alive.", 
-	11:"Want to play video games instead?",
-	12:"Let's do karaoke instead.",
-	13:"Let's play fighter. Winner stays, loser pays.",
-	14:"Try asking someone else.",
-	15:"I don't care.",
-	16:"Meong.",
-	17:"Miau.",
-	18:"Mjau.",
-	19:"Miaou.",
-	20:"喵喵.",
-	21:"ニャー.",
-	22:"야옹.",
-	23:"Мияу-мияу.",
-	24:"Mjá.",
-	25:"Meow.",
-	26:"מְיָאוּ.",
-	27:".مُواَء",
-	28:"เมี้ยว.",
-	29:"Miao."
+	1:"Meong.",
+	2:"Miau.",
+	3:"Mjau.",
+	4:"Miaou.",
+	5:"喵喵.",
+	6:"ニャー.",
+	7:"야옹.",
+	8:"Мияу-мияу.",
+	9:"Mjá.",
+	10:"Meow.",
+	11:"מְיָאוּ.",
+	12:".مُواَء",
+	13:"เมี้ยว.",
+	14:"Miao."
 }
 
 GREETING_DICT = \
@@ -408,31 +393,18 @@ def calendar():
 	#orange = service.calendars().insert(body=calendar).execute()
 	#print orange['id']
 
-def initaliseQuestionCard():
-	card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building?",['excite', 'building'])
-	card1 = qn.questionnode("What is your first name?")
-	card2 = qn.questionnode("What is your last name?")
-	card3 = qn.questionnode("If you have a Drexel ID, what is it?")
-	card0.setNextNode(card1)
-	card1.setNextNode(card2)
-	card2.setNextNode(card3)
-	card = ll.linkedlist(card0)
-	LINKED_QUESTION_DICT["card"] = card
-	return LINKED_QUESTION_DICT['card']
-
-def initaliseQuestionConference():
-	conference0 = qn.questionnode("Trying to book a conference room? Do you want Orange or Grey?")
-	conference1 = qn.questionnode("What day do you want the room?")
-	conference2 = qn.questionnode("What times do you want the room?")
-	conference0.setNextNode(conference1)
-	conference1.setNextNode(conference2)
-	conference = ll.linkedlist(conference0)
-	LINKED_QUESTION_DICT["conference"] = conference
-	return LINKED_QUESTION_DICT['conference']
-
 def sendResults(answer_box,question_type):
 	if(question_type == Action.card):
-		pass#FINISH FINISH FINISH
+		out = "Hello, I got a card request.\n" \
+		+ "*Type:* " + answer_box[0] + "\n" \
+		+ "*First Name:* " + answer_box[1] + "\n" \
+		+ "*Last Name:* " + answer_box[2] + "\n" \
+		+ "*Drexel ID:* " + answer_box[3]
+		messageOne(out,"U0G0CFKB2")#U04JCJPLY U0G0CFKB2
+	elif(question_type == Action.conference):
+		if(answer_box[1].lower() == "orange"):
+			room = CONFERENCE_CALENDAR_DICT["orange"]
+		calendarAddEvent(answer_box,room)
 
 def doLinkedQuestion(linked_question,user_id,question_type):
 	answer_box = []
@@ -445,11 +417,23 @@ def doLinkedQuestion(linked_question,user_id,question_type):
 					messageOne(linked_question.head.question,user_id)
 				else:
 					sendResults(answer_box,question_type)
-			time.sleep(1)
+					return 1;
+			else:
+				if text != None:
+					messageOne(linked_question.head.question,user_id)
+			time.sleep(0.2)
 
 		
 	except SocketError as e:
 		pass
+
+def getLinkedQuestion(action):
+	if action == Action.card:
+		question = questions.questioncard()
+		return question
+	elif action == Action.conference:
+		question = questions.questionconference()
+		return question
 
 def calendarAddEvent(event_info,room):
 	# event_info: [summary, location, start, end]
@@ -487,16 +471,16 @@ def calendarAddEvent(event_info,room):
 
 MESSAGE_DICT = \
 {
-	Action.hello:"bad",
+	Action.hello:None,
 	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
-	Action.event:"bad",
+	Action.event:None,
 	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
-	Action.card:initaliseQuestionCard(),
+	Action.card:None,
 	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
-	Action.conference:initaliseQuestionConference(),
+	Action.conference:None,
 	Action.restroom:"The men's bathroom code is [3] and [4] simultaneously, followed by [1]. The women's bathroom doesn't have a password.",
 	Action.payroll:"Payroll problems? Fill <https://files.slack.com/files-pri/T0257SBSW-F2LNMHC3W/payroll_resolution_form-open_with_pro.pdf|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
-	Action.generic:"bad",
+	Action.generic:None,
 	Action.prout:"The public Repository of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but non-ExCITe personnel need approval.",
 	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
 	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. You must be on the 'ExciteResearch' network to use it. Contact <@U04JCJPLY|Lauren> if something's not working.",
@@ -572,7 +556,7 @@ if __name__ == "__main__":
 						if isinstance(MESSAGE_DICT[action], str):
 							messageOneWithGreeting(MESSAGE_DICT[action],user)
 						else:
-							doLinkedQuestion(MESSAGE_DICT[action],user,action)
+							doLinkedQuestion(getLinkedQuestion(action),user,action)
 			except WebSocketConnectionClosedException as e:
 				sack_client.rtm_connect()
 

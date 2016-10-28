@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 class questionnode:
@@ -28,18 +30,11 @@ class questionnode:
 		self.next_node = d
 
 	def handleAnswer(self,sin,lout):
-		print("sin " + str(sin))
-		print(self.acceptable_answers)
 		if sin == None:
-			print "no answer"
 			return 0
 		elif self.acceptable_answers is None:
 			lout.append(sin)
-			print(lout)
-		elif sin in self.acceptable_answers:
-			print "good answer"
+		elif sin.lower() in self.acceptable_answers:
 			lout.append(sin)
-			print(lout)
 		else:
-			print "bad answer"
 			return 0
