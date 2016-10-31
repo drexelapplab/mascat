@@ -26,6 +26,7 @@ EXAMPLE_COMMAND = "do"
 #global
 CURRENT_DATE = datetime.date.today()
 PREVIOUS_REMINDER_DATE = datetime.date.today()
+THREAD_USER_LIST = [] #Users in this list are in a conversation within a thread, and should be ignored by the regular RTM reader.
 
 LINKED_QUESTION_DICT = {}
 
@@ -180,7 +181,7 @@ def parse_slack_output(slack_rtm_output):
 				return str(output['user']), None, Action.newUser
 
 			# Mascat deciding what to say
-			elif output and 'channel' in output and 'user' in output and output['user'] != BOT_ID:
+			elif output and 'type' in output and 'channel' in output and 'user' in output and output['user'] != BOT_ID and output['user'] not in THREAD_USER_LIST:
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
 
@@ -228,13 +229,8 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.hello
 						elif 'pretty' in text:
 							return output['user'], output['channel'], Action.pretty
-						#elif 'tacsam' in text:
-						#	return output['user'], output['channel'], Action.tacsam
 						else:
-							return output['user'], output['channel'], Action.generic
-			if output['type'] != "presence_change" and output['type'] != "reconnect_url" and output['type'] != "pong":
-				print(output)
-				print("")	
+							return output['user'], output['channel'], Action.generic	
 	return None,None,None
 
 def parse_slack_output_for_linked_question(slack_rtm_output):
@@ -242,7 +238,7 @@ def parse_slack_output_for_linked_question(slack_rtm_output):
 	if output_list and len(output_list) > 0:
 		for output in output_list:
 
-			if output and 'channel' in output and 'user' in output and output['user'] != BOT_ID:
+			if output and 'channel' in output and 'user' in output and output['user'] != BOT_ID and output['user'] in THREAD_USER_LIST:
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
 
@@ -297,12 +293,6 @@ def messageChannel(message_text, channel_id):
 	response = "Attención. Soy Mascat y tú amigo."
 	slack_client.api_call("chat.postMessage", channel=channel_id, text=message_text, as_user=True)
 	print(response +"\n")
-
-#def messageOneTacsam(message_text, user_id):
-#	im = slack_client.api_call("im.open", user=user_id)
-#	response = message_text
-#	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=False, username="T͍͖͚̰̹̹̥̈́ͭͪa̶̤̤͈̮͗͑ͩc̈́̑͋ͯ̒҉̪͔̼ͅs͉͇a̫ͮm̡̤͍ͬͅ,̥̲͕͎̒̔͑ͪ ̻͚̹͙̙ͯ͛̿ͣ̆t̠̯̏͂h͎̲͕̹̟̙ͭ̂́ͩ̎̂e̢̎̒ͣͩ̔ͩͪ ̳̬̹͉̜͉̲̐u͔̲̞̪̗͓̽͗ͣn̆҉͍̗̭̝̝͉ḓ͍̲̬̯̖̅y̌̓҉̟̮̞̞i̠̠̱̝̻͈n͉̺͙̥̮͇̓g̡̬̬̺̬͍̔ ̙̤̼ͪ͑͌̽d͉͙͚̻̱̙ͩ̈́͒̆̉͂͐͞e̜̙͕͙̹̣͈̾͒̏̀̚͞iṱ̶̥̲͗̎ͯͩ̚y̭̣͐ͮ̓̏ ̙͍̹̰̭̦̫̏͗̓o͎͖f̵͔̰̐͌̋ͯ̋́̊ ̙͇̝̱̝ͩE͙̣̦̤ͧ̓ͫ̆x̡͊ͭC̗̱̙͇̺͎̋̂̄̅ͬ͘I̬̙T̳̞͉̞͎͎̯ë́̓ͦ̋̎̿", icon_url="http://lorempixel.com/128/128/")
-#	print(response +"\n")
 
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
@@ -416,6 +406,7 @@ def doLinkedQuestion(linked_question,user_id,question_type):
 				if(linked_question.next() != 0):
 					messageOne(linked_question.head.question,user_id)
 				else:
+					THREAD_USER_LIST.remove(user_id)
 					sendResults(answer_box,question_type)
 					return 1;
 			else:
@@ -489,12 +480,12 @@ MESSAGE_DICT = \
 	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
 	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
 	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks.",
-	#Action.tacsam:"O̥͍Ư̖̻̮͉̪̠̂̎͗̓ͫ̌R̞̘͍͙̄̿̾ ͤͦŅͨ̊ͪͪ̇̌Aͫ͗M̴̙̰̗̤̫ͩͩ̊̄̾̚ͅE̦̘̥̒͒̓̏̿ͩ ̴͍̹̞̮͖͍ͥ̔̏Ḩ̮͔̖͇͑̔͗̓̇̎͗A̪̟̖̣͌̍̋̈́Ş̥̿̾ͨͤ̀͑ ̷̹̬̻̙̰͙͊̾͋B̨̮̹̖̒̒͊̏̓E̸͙̖̹ͥE̴ͯ̓̒Nͣ̑ͬ̍̽̒҉̰ ͉̭͍̍̉̍ͯ̔I͓̤͎͖̐ͩͫ̾̒͟N̳̹͕͡V̞̫̤̳͂ͩ̆ͮ̋ͤͣ͜ͅO̷̟̗̜̟ͬK̢͖͈̰͙̩̦E̢̅̏D̜̦̂͗ͧͦ̔,҉͔̜̤͎̯̱͍ ͉̹̯̣̋Ą͛̾N̹̼͈͇͎͛ͬ̉̈͆͝D͔̦̼̍ͮ̊̽̊ ̦ͭͩW̱̱̞̜̹̳̜͛̽E̪̗̬̘̩͎͊ͅ ̸̿̍ͅA̖̥ͨ̿̐̄Pͨ͊͛ͣͧ̽̂҉͕̫̩̼̮Ṕ̗̙̫ͭ͆Ȇ͂ͥ̀͛̈A̭̱̞ͣ͋͐͊̽̕Ŗ͍̝̈́̓ͥͣ ̤͍̺̦͈́͊Bͨͨ̎̽͏͔E̬͇̥͎̗F̵̣ͫ̓̈́̒̍̽ͭỌ̶̖̭ͪ̋ͨͨ͌̑R̖͉̺͉̱̃̓̽͋ͯͮ͜Ẽ̗͍͍͈͊̂̾̀͊̀̚ ̶̠̙̏͌Y͉̺̓ͦ͂͛O̢͖̞̲̭̙͉ͧ͂̽ͥͅṶ̜̟ͮͭ̑ͩ.̗͛̔̀ ̷̞̮͙̫P̪̣͗͆͟R̡̘ͧ̏ͨ̏ͭ̃̓ͅÄ͔̙̻̻͍ͯ͗ͫ͌͗ͯI̟̪̤͖̰̍̓ͮ̈́S̡͚̥̻͔̞̽E̹̲̱̺̠͕͈̎̉ͣ̈́̉ ̼̝͕̟̽ͬ͋́͗̃̾͢ͅȎ̗̝͉ͩ͘Ų̦̖̟̱͇́̇̐Ṙ̪͆̿ͨ̀̑̓ ͍͙̮͊̊ͧͣV̻͔͍̩̠̩̎̒̓́͒ͣI̩͇̬̣S̝͉̝̠̰̼̩̏̾ͨA̳̞͚͉̼ͥ̇̾̀ͦ̒̀G̥̭͖̺̥̈́̌̿͐̍̿͠ͅË͔̙̩ͤ,̙̃ͯ̀ ̹͔͍͚̥̄ͤ̃̓ͯͥͨF̶̙̜̆̉͗̃̆ͧO͂̈ͤR҉͓ ̡̱͂͌ͧͯͧ͋W͈̞̰̖̄͑̍ͣ͒͡È̛͖̥̬̠̂̂ ͊A̧̯̰ͪ̌̄R͚͍̥͌̂͊̃ͪͬ̆͜E̘̹̺͇̩͑̉ͥ ̛̮͉ͦ̈Ę͓͍͕̬̫ͥ͛T̲͔͈͍̮̋ͤ͞E͓̯̒ͩ̓ͫR̳̰̤̀̓̆̃ͩͨ̚N̸̖̻̮͎̹̰͑͋͆̌ͦ̿͂A̶̤̞̰̦̰̿͑L̦̻̘̜̤͢"
 }
 
 if __name__ == "__main__":
 	#initaliseQuestions()
 	calendar()
+	threads = []
 
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
@@ -503,11 +494,6 @@ if __name__ == "__main__":
 		#reads_to_ping = PING_FREQUENCY_DELAY
 		print("Mascat connected and running.")
 		while True:
-			#reads_to_ping -= 1
-			#if reads_to_ping == 0:
-			#	slack_client.server.send_to_websocket({"id":1234, "type":"ping"})
-			#	reads_to_ping = PING_FREQUENCY_DELAY
-
 
 			# See how many days it's been since the last date update.
 			date_delta = datetime.date.today() - CURRENT_DATE
@@ -556,7 +542,10 @@ if __name__ == "__main__":
 						if isinstance(MESSAGE_DICT[action], str):
 							messageOneWithGreeting(MESSAGE_DICT[action],user)
 						else:
-							doLinkedQuestion(getLinkedQuestion(action),user,action)
+							THREAD_USER_LIST.append(user)
+							t = threading.Thread(name=user, target=doLinkedQuestion, args=(getLinkedQuestion(action),user,action))
+							threads.append(t)
+							t.start()
 			except WebSocketConnectionClosedException as e:
 				sack_client.rtm_connect()
 
