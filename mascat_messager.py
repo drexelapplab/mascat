@@ -15,7 +15,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from apiclient.discovery import build
 from httplib2 import Http
 from websocket import *
-import threading
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -26,7 +25,8 @@ EXAMPLE_COMMAND = "do"
 #global
 CURRENT_DATE = datetime.date.today()
 PREVIOUS_REMINDER_DATE = datetime.date.today()
-THREAD_USER_LIST = [] #Users in this list are in a conversation within a thread, and should be ignored by the regular RTM reader.
+THREAD_USER_LIST = {} #Users in this list are in a conversation within a thread, and should be ignored by the regular RTM reader.
+ANSWER_BOX = {}
 
 LINKED_QUESTION_DICT = {}
 
@@ -48,6 +48,8 @@ class Action(Enum):
 	tour = 14
 	kitchen = 15
 	applab = 16
+
+	continueLinkedQuestion = 50
 
 
 	#tacsam = 98
@@ -181,7 +183,7 @@ def parse_slack_output(slack_rtm_output):
 				return str(output['user']), None, Action.newUser
 
 			# Mascat deciding what to say
-			elif output and 'type' in output and 'channel' in output and 'user' in output and output['user'] != BOT_ID and output['user'] not in THREAD_USER_LIST:
+			elif output and 'type' in output and 'channel' in output and 'user' in output and output['user'] != BOT_ID and output['user']:
 				ch = slack_client.api_call("channels.info", channel=output['channel'])
 				gr = slack_client.api_call("groups.info", channel=output['channel'])
 
@@ -191,47 +193,51 @@ def parse_slack_output(slack_rtm_output):
 					is_im = False	
 
 				if 'text' in output:
+					print(THREAD_USER_LIST)
 					consoletext = output['text']
 					text = output['text'].lower()
 					if not is_im and AT_BOT.lower() in text:
 						return output['user'], output['channel'], Action.redirect
-					elif is_im:
+					elif is_im and output['user'] not in THREAD_USER_LIST:
 						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						if 'event' in text:
-							return output['user'], output['channel'], Action.event
+							return output['user'], output['channel'], Action.event, output['text']
 						elif 'print' in text:
-							return output['user'], output['channel'], Action.printing
+							return output['user'], output['channel'], Action.printing, output['text']
 						elif 'card' in text:
-							return output['user'], output['channel'], Action.card
+							return output['user'], output['channel'], Action.card, output['text']
 						elif 'conference' in text and ('extension' in text or 'phone' in text):
-							return output['user'], output['channel'], Action.extension
+							return output['user'], output['channel'], Action.extension, output['text']
 						elif 'conference' in text:
-							return output['user'], output['channel'], Action.conference
+							return output['user'], output['channel'], Action.conference, output['text']
 						elif 'restroom' in text or 'bathroom' in text:
-							return output['user'], output['channel'], Action.restroom
+							return output['user'], output['channel'], Action.restroom, output['text']
 						elif 'payroll' in text:
-							return output['user'], output['channel'], Action.payroll
+							return output['user'], output['channel'], Action.payroll, output['text']
 						elif 'prout' in text:
-							return output['user'], output['channel'], Action.prout
+							return output['user'], output['channel'], Action.prout, output['text']
 						elif 'dragonfly' in text or 'nea' in text or 'internet' in text:
-							return output['user'], output['channel'], Action.dragonfly
+							return output['user'], output['channel'], Action.dragonfly, output['text']
 						elif 'airplay' in text or 'display' in text:
-							return output['user'], output['channel'], Action.airplay
+							return output['user'], output['channel'], Action.airplay, output['text']
 						elif 'hours' in text:
-							return output['user'], output['channel'], Action.hours
+							return output['user'], output['channel'], Action.hours, output['text']
 						elif 'tour' in text:
-							return output['user'], output['channel'], Action.tour
+							return output['user'], output['channel'], Action.tour, output['text']
 						elif 'kitchen' in text:
-							return output['user'], output['channel'], Action.kitchen
+							return output['user'], output['channel'], Action.kitchen, output['text']
 						elif 'applab' in text or 'app lab' in text:
-							return output['user'], output['channel'], Action.applab
+							return output['user'], output['channel'], Action.applab, output['text']
 						elif 'hello' in text or 'hi' in text or 'hey' in text:
-							return output['user'], output['channel'], Action.hello
+							return output['user'], output['channel'], Action.hello, output['text']
 						elif 'pretty' in text:
-							return output['user'], output['channel'], Action.pretty
+							return output['user'], output['channel'], Action.pretty, output['text']
 						else:
-							return output['user'], output['channel'], Action.generic	
-	return None,None,None
+							return output['user'], output['channel'], Action.generic, output['text']
+					elif is_im and output['user'] in THREAD_USER_LIST:
+						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
+						return output['user'], output['channel'], Action.continueLinkedQuestion, output['text']
+	return None,None,None,None
 
 def parse_slack_output_for_linked_question(slack_rtm_output):
 	output_list = slack_rtm_output
@@ -376,43 +382,40 @@ def calendar():
 
 	#created_rule = service.acl().insert(calendarId='3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com', body=rule).execute()
 
-	print(service.calendarList().list().execute())
+	#print(service.calendarList().list().execute())
 
 
 
 	#orange = service.calendars().insert(body=calendar).execute()
 	#print orange['id']
 
-def sendResults(answer_box,question_type):
-	if(question_type == Action.card):
+def sendResults(answer_box,linked_question):
+	if(isinstance(linked_question, questions.questioncard)):
+		print answer_box
 		out = "Hello, I got a card request.\n" \
 		+ "*Type:* " + answer_box[0] + "\n" \
 		+ "*First Name:* " + answer_box[1] + "\n" \
 		+ "*Last Name:* " + answer_box[2] + "\n" \
 		+ "*Drexel ID:* " + answer_box[3]
 		messageOne(out,"U0G0CFKB2")#U04JCJPLY U0G0CFKB2
-	elif(question_type == Action.conference):
+	elif(isinstance(linked_question, questions.questionconference)):
 		if(answer_box[1].lower() == "orange"):
 			room = CONFERENCE_CALENDAR_DICT["orange"]
 		calendarAddEvent(answer_box,room)
 
-def doLinkedQuestion(linked_question,user_id,question_type):
-	answer_box = []
-	messageOne(linked_question.head.question,user_id)
+def doLinkedQuestion(linked_question,user_id,text):
+	#messageOne(linked_question.head.question,user_id)
 	try:
-		while True:
-			text = parse_slack_output_for_linked_question(slack_client.rtm_read())
-			if linked_question.head.handleAnswer(text,answer_box) != 0:
-				if(linked_question.next() != 0):
-					messageOne(linked_question.head.question,user_id)
-				else:
-					THREAD_USER_LIST.remove(user_id)
-					sendResults(answer_box,question_type)
-					return 1;
+		if linked_question.head.handleAnswer(text,ANSWER_BOX[user_id]) != 0:
+			if(linked_question.next() != 0):
+				messageOne(linked_question.head.question,user_id)
 			else:
-				if text != None:
-					messageOne(linked_question.head.question,user_id)
-			time.sleep(0.2)
+				del THREAD_USER_LIST[user_id]
+				sendResults(ANSWER_BOX[user_id],linked_question)
+				return 1;
+		else:
+			if text != None:
+				messageOne(linked_question.head.question,user_id)
 
 		
 	except SocketError as e:
@@ -480,12 +483,12 @@ MESSAGE_DICT = \
 	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
 	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
 	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks.",
+	Action.continueLinkedQuestion:None,
 }
 
 if __name__ == "__main__":
 	#initaliseQuestions()
 	calendar()
-	threads = []
 
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
@@ -520,13 +523,15 @@ if __name__ == "__main__":
 				messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",CHANNEL_DICT['general'])
 
 			try:
-				user, channel, action = parse_slack_output(slack_client.rtm_read())
+				user, channel, action, text = parse_slack_output(slack_client.rtm_read())
 				if user and action and action.value > 100:
 					if action == Action.newUser:
 						newUser(user)
 
 				elif user and action and action.value <= 100:
-					if action == Action.redirect:
+					if action == Action.continueLinkedQuestion:
+						doLinkedQuestion(THREAD_USER_LIST[user],user,text)
+					elif action == Action.redirect:
 						herd_to_dm(user,channel,MESSAGE_DICT[action])
 					elif action == Action.event:
 						getEvents(user)
@@ -542,12 +547,12 @@ if __name__ == "__main__":
 						if isinstance(MESSAGE_DICT[action], str):
 							messageOneWithGreeting(MESSAGE_DICT[action],user)
 						else:
-							THREAD_USER_LIST.append(user)
-							t = threading.Thread(name=user, target=doLinkedQuestion, args=(getLinkedQuestion(action),user,action))
-							threads.append(t)
-							t.start()
+							q = getLinkedQuestion(action)
+							THREAD_USER_LIST[user] = q
+							ANSWER_BOX[user] = []
+							doLinkedQuestion(q,user,text)
 			except WebSocketConnectionClosedException as e:
-				sack_client.rtm_connect()
+				slack_client.rtm_connect()
 
 			
 
