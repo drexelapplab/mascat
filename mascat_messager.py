@@ -27,38 +27,38 @@ CURRENT_DATE = datetime.date.today()
 PREVIOUS_REMINDER_DATE = datetime.date.today()
 THREAD_USER_LIST = {} #Users in this list are in a conversation within a thread, and should be ignored by the regular RTM reader.
 ANSWER_BOX = {}
-
-LINKED_QUESTION_DICT = {}
+CONFUSED_USER_LIST = {}
 
 class Action(Enum):
-	# Mascat message actions
-	generic = 1
-	redirect = 2
-	event = 3
-	printing = 4
-	card = 5
-	conference = 6
-	restroom = 7
-	payroll = 8
-	prout = 9
-	dragonfly = 10
-	airplay = 11
-	extension = 12
-	hours = 13
-	tour = 14
-	kitchen = 15
-	applab = 16
+	# Don't publicise these, these are either used by the program only
+	newUser = 1
+	remind = 2
 
-	continueLinkedQuestion = 50
+	# Mascat normal message actions
+	NORMAL = 100
+	help = 101
+	event = 102
+	printing = 103
+	card = 104
+	conference = 105
+	restroom = 106
+	payroll = 107
+	prout = 108
+	dragonfly = 109
+	airplay = 110
+	extension = 111
+	hours = 112
+	tour = 113
+	kitchen = 114
+	applab = 115
 
-
-	#tacsam = 98
-	hello = 99
-	pretty = 100
-
-	# Mascat non message actions
-	newUser = 101
-	remind = 102
+	# Mascat unlisted message actions (message type actions that users won't directly call, or are easter egg messages)
+	UNLISTED = 200
+	hello = 201
+	pretty = 202
+	generic = 203
+	redirect = 204
+	continueLinkedQuestion = 205
 
 CHANNEL_DICT = \
 {
@@ -193,7 +193,6 @@ def parse_slack_output(slack_rtm_output):
 					is_im = False	
 
 				if 'text' in output:
-					print(THREAD_USER_LIST)
 					consoletext = output['text']
 					text = output['text'].lower()
 					if not is_im and AT_BOT.lower() in text:
@@ -228,6 +227,8 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.kitchen, output['text']
 						elif 'applab' in text or 'app lab' in text:
 							return output['user'], output['channel'], Action.applab, output['text']
+						elif 'help' in text:
+							return output['user'], output['channel'], Action.help, output['text']
 						elif 'hello' in text or 'hi' in text or 'hey' in text:
 							return output['user'], output['channel'], Action.hello, output['text']
 						elif 'pretty' in text:
@@ -238,31 +239,6 @@ def parse_slack_output(slack_rtm_output):
 						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						return output['user'], output['channel'], Action.continueLinkedQuestion, output['text']
 	return None,None,None,None
-
-def parse_slack_output_for_linked_question(slack_rtm_output):
-	output_list = slack_rtm_output
-	if output_list and len(output_list) > 0:
-		for output in output_list:
-
-			if output and 'channel' in output and 'user' in output and output['user'] != BOT_ID and output['user'] in THREAD_USER_LIST:
-				ch = slack_client.api_call("channels.info", channel=output['channel'])
-				gr = slack_client.api_call("groups.info", channel=output['channel'])
-
-				if ch['ok'] == False and gr['ok'] == False:
-					is_im = True
-				else:
-					is_im = False	
-
-				if 'text' in output:
-					consoletext = output['text']
-					text = output['text'].lower()
-					if is_im:
-						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
-						return output['text']
-			if output['type'] != "presence_change" and output['type'] != "reconnect_url" and output['type'] != "pong":
-				print(output)
-				print("")	
-	return None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
 # as in "January, February".
@@ -391,7 +367,6 @@ def calendar():
 
 def sendResults(answer_box,linked_question):
 	if(isinstance(linked_question, questions.questioncard)):
-		print answer_box
 		out = "Hello, I got a card request.\n" \
 		+ "*Type:* " + answer_box[0] + "\n" \
 		+ "*First Name:* " + answer_box[1] + "\n" \
@@ -524,34 +499,57 @@ if __name__ == "__main__":
 
 			try:
 				user, channel, action, text = parse_slack_output(slack_client.rtm_read())
-				if user and action and action.value > 100:
+				if user and action and action.value <= 100:
 					if action == Action.newUser:
 						newUser(user)
 
-				elif user and action and action.value <= 100:
-					if action == Action.continueLinkedQuestion:
-						doLinkedQuestion(THREAD_USER_LIST[user],user,text)
-					elif action == Action.redirect:
-						herd_to_dm(user,channel,MESSAGE_DICT[action])
-					elif action == Action.event:
-						getEvents(user)
-					elif action == Action.generic:
-						messageOne(getGenericResponse(),user)
-					elif action == Action.hello:
-						hello(user)
-					elif action == Action.pretty:
-						messageOne(EMOTICON_DICT[random.randint(1,len(EMOTICON_DICT))],user)
-					#elif action == Action.tacsam:
-					#	messageOneTacsam(MESSAGE_DICT[action],user)
-					else:
-						if isinstance(MESSAGE_DICT[action], str):
-							messageOneWithGreeting(MESSAGE_DICT[action],user)
+				elif user and action and action.value > 100:
+					if action == Action.generic:
+						if user in CONFUSED_USER_LIST:
+							CONFUSED_USER_LIST[user] +=1
 						else:
-							q = getLinkedQuestion(action)
-							THREAD_USER_LIST[user] = q
-							ANSWER_BOX[user] = []
-							doLinkedQuestion(q,user,text)
-			except WebSocketConnectionClosedException as e:
+							CONFUSED_USER_LIST[user] = 1
+
+						if CONFUSED_USER_LIST[user] >= 3:
+							messageOne("Can't find what you're looking for? Say 'help' to get a list of commands or send a message to <@U04JCJPLY|Lauren> about improving what I know.",user)
+						else:
+							messageOne(getGenericResponse(),user)
+					else:
+						if user in CONFUSED_USER_LIST:
+							del CONFUSED_USER_LIST[user]
+						if action == Action.continueLinkedQuestion:
+							doLinkedQuestion(THREAD_USER_LIST[user],user,text)
+						elif action == Action.redirect:
+							herd_to_dm(user,channel,MESSAGE_DICT[action])
+						elif action == Action.event:
+							getEvents(user)
+						elif action == Action.help:
+							out = ""
+							l = list(Action)
+							while l[0] != Action.NORMAL:
+								l.pop(0)
+							l.pop(0)
+							i = 0
+							while l[i] != Action.UNLISTED:
+								out += "\t" + unicode("•",'utf-8') + " *" + l[i].name + "*\n"
+								i += 1
+							messageOneWithGreeting("Here's what you can ask me about:\n" + out ,user)
+						elif action == Action.hello:
+							hello(user)
+						elif action == Action.pretty:
+							messageOne(EMOTICON_DICT[random.randint(1,len(EMOTICON_DICT))],user)
+						#elif action == Action.tacsam:
+						#	messageOneTacsam(MESSAGE_DICT[action],user)
+						else:
+							if isinstance(MESSAGE_DICT[action], str):
+								messageOneWithGreeting(MESSAGE_DICT[action],user)
+							else:
+								q = getLinkedQuestion(action)
+								THREAD_USER_LIST[user] = q
+								ANSWER_BOX[user] = []
+								doLinkedQuestion(q,user,text)
+			except (WebSocketConnectionClosedException, SocketError) as e:
+				print("bs caught")
 				slack_client.rtm_connect()
 
 			

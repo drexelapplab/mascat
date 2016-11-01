@@ -9,19 +9,27 @@ class questioncard(linked_list.linkedlist):
 	card1 = qn.questionnode("What is your first name?")
 	card2 = qn.questionnode("What is your last name?")
 	card3 = qn.questionnode("If you have a Drexel ID, what is it?")
+	#confirm = qn.questionnode("REPLACE ME")
 	card0.setNextNode(card1)
 	card1.setNextNode(card2)
 	card2.setNextNode(card3)
+	#card3.setNextNode(confirm)
 
 	def __init__(self):
 		self.head = self.card0
 
 class questionconference(linked_list.linkedlist):
 	conference0 = qn.questionnode("Trying to book a conference room? Do you want Orange or Grey?")
-	conference1 = qn.questionnode("What day do you want the room?")
-	conference2 = qn.questionnode("What times do you want the room?")
+	conference1 = qn.questionnode("What day do you want the room? (YYYY-MM-DD)",['\d{4}-\d{2}-\d{2}'])
+	conference2 = qn.questionnode("What time do you want the room? (HH:MM AM/PM)",['\d{2}:\d{2}\s*(AM|PM)'])
 	conference0.setNextNode(conference1)
 	conference1.setNextNode(conference2)
 
 	def __init__(self):
 		self.head = self.conference0
+
+	def getTimes(service,date):
+		events = service.events().list(calendarId='primary', timeMin=date+"T08:00:00-05:00", timeMax=date+"T20:00:00-05:00", pageToken=page_token).execute()
+
+
+		

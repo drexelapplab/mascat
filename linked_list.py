@@ -16,3 +16,8 @@ class linkedlist:
 			self.head = self.head.getNextNode()
 		else:
 			return 0
+
+	def preConfirm(self,lin):
+		for i in range(0,len(lin)-1):
+			print(lin[i])
+		print("Does this look right?")
