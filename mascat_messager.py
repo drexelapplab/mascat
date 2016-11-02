@@ -464,6 +464,10 @@ MESSAGE_DICT = \
 if __name__ == "__main__":
 	#initaliseQuestions()
 	calendar()
+	CURRENT_DATE = datetime.datetime.strptime(os.environ.get('CURRENT_DATE'),"%Y%m%d")
+	PREVIOUS_REMINDER_DATE = datetime.datetime.strptime(os.environ.get('PREVIOUS_REMINDER_DATE'),"%Y%m%d")
+	print CURRENT_DATE
+	print datetime.datetime.today()
 
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
@@ -474,17 +478,18 @@ if __name__ == "__main__":
 		while True:
 
 			# See how many days it's been since the last date update.
-			date_delta = datetime.date.today() - CURRENT_DATE
+			date_delta = datetime.datetime.now() - CURRENT_DATE
 			# If it's been at least a day, update the date and
 			# check if we need to greet any recent new users.
 			if date_delta.days > 0 and datetime.datetime.now().time().hour >= 9:
 				print("New Day\n")
-				CURRENT_DATE = datetime.date.today()
+				CURRENT_DATE = datetime.datetime.today()
+				os.environ['CURRENT_DATE'] = CURRENT_DATE.strftime("%Y%m%d")
 
 				with open('new_users.tsv', 'rb') as fin, open('temp.tsv', 'wb') as fout:
 					writer = csv.writer(fout, delimiter="\t")
 					for row in csv.reader(fin, delimiter="\t"):
-						if (CURRENT_DATE - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
+						if (CURRENT_DATE.date() - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
 							messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions. You've got the touch.",row[0])
 						else:
 							writer.writerow(row)
@@ -494,6 +499,7 @@ if __name__ == "__main__":
 			if CURRENT_DATE.month != PREVIOUS_REMINDER_DATE.month:
 				print("New Month\n")
 				PREVIOUS_REMINDER_DATE = CURRENT_DATE
+				os.environ['PREVIOUS_REMINDER_DATE'] = PREVIOUS_REMINDER_DATE.strftime("%Y%m%d")
 				#Attención. Soy Mascat y tú amigo.
 				messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",CHANNEL_DICT['general'])
 
@@ -508,6 +514,7 @@ if __name__ == "__main__":
 						if user in CONFUSED_USER_LIST:
 							CONFUSED_USER_LIST[user] +=1
 						else:
+							newUser(user)
 							CONFUSED_USER_LIST[user] = 1
 
 						if CONFUSED_USER_LIST[user] >= 3:
@@ -549,8 +556,9 @@ if __name__ == "__main__":
 								ANSWER_BOX[user] = []
 								doLinkedQuestion(q,user,text)
 			except (WebSocketConnectionClosedException, SocketError) as e:
-				print("bs caught")
+				print("bs caught at " + datetime.datetime.now())
 				slack_client.rtm_connect()
+				print("reconnected at " + datetime.datetime.now())
 
 			
 
