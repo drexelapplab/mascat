@@ -29,6 +29,7 @@ THREAD_USER_LIST = {} #Users in this list are in a conversation within a thread,
 ANSWER_BOX = {}
 CONFUSED_USER_LIST = {}
 
+
 class Action(Enum):
 	# Don't publicise these, these are either used by the program only
 	newUser = 1
@@ -155,12 +156,19 @@ EMOTICON_DICT = \
 
 CONFERENCE_CALENDAR_DICT = \
 {
-	"orange":"3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com"
+	'orange':'3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com',
+	'gray':'sm2h0b5q9eljcn7gbgcgpsl4fg@group.calendar.google.com',
+	'call':'2sa29nliesjsodri8ss2ug80e4@group.calendar.google.com',
 }
 	
 
 #instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+
+scopes = ['https://www.googleapis.com/auth/calendar']
+credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
+http_auth = credentials.authorize(Http())
+calendar_client = build('calendar', 'v3', http=http_auth)
 
 def handle_event(user, channel):
 	list = slack_client.api_call("files.list", user=user)
@@ -338,34 +346,34 @@ def newUser(user):
 	tsvFile.close()
 
 def calendar():
-	scopes = ['https://www.googleapis.com/auth/calendar']
-	credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
-	http_auth = credentials.authorize(Http())
-	service = build('calendar', 'v3', http=http_auth)
+	#scopes = ['https://www.googleapis.com/auth/calendar']
+	#credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
+	#http_auth = credentials.authorize(Http())
+	#calendar_client = build('calendar', 'v3', http=http_auth)
+	#print calendar_client
 
 	calendar = {
-		'summary':'OrangeReservations',
+		'summary':'CallReservations',
 		'timeZone':'America/New_York'
 	}
+
 	#service.calendars().delete(calendarId='o44cmirs8sa8lj1c51catmqtbs@group.calendar.google.com').execute()
 	
 	rule = {
 	    'scope': {
-	        'type': 'default'
+	        'type': 'user',
+	        'value': 'applab@excitecenter.org'
 	    },
-	    'role': 'reader'
+	    'role': 'writer'
 	}
+	
+	#created_rule = calendar_client.acl().insert(calendarId='3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com', body=rule).execute()
+	#created_rule = calendar_client.acl().insert(calendarId='sm2h0b5q9eljcn7gbgcgpsl4fg@group.calendar.google.com', body=rule).execute()
+	#created_rule = calendar_client.acl().insert(calendarId='2sa29nliesjsodri8ss2ug80e4@group.calendar.google.com', body=rule).execute()
 
-	#created_rule = service.acl().insert(calendarId='3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com', body=rule).execute()
+	#orange = calendar_client.calendars().insert(body=calendar).execute()
 
-	#print(service.calendarList().list().execute())
-
-
-
-	#orange = service.calendars().insert(body=calendar).execute()
-	#print orange['id']
-
-def sendResults(answer_box,linked_question):
+def sendResults(answer_box,linked_question,user_id):
 	if(isinstance(linked_question, questions.questioncard)):
 		out = "Hello, I got a card request.\n" \
 		+ "*Type:* " + answer_box[0] + "\n" \
@@ -373,10 +381,14 @@ def sendResults(answer_box,linked_question):
 		+ "*Last Name:* " + answer_box[2] + "\n" \
 		+ "*Drexel ID:* " + answer_box[3]
 		messageOne(out,"U0G0CFKB2")#U04JCJPLY U0G0CFKB2
+
 	elif(isinstance(linked_question, questions.questionconference)):
-		if(answer_box[1].lower() == "orange"):
-			room = CONFERENCE_CALENDAR_DICT["orange"]
-		calendarAddEvent(answer_box,room)
+		room = CONFERENCE_CALENDAR_DICT[answer_box[0]]
+		split = answer_box[1].split("/")
+		date = split[2] + "-" + split[0] + "-" + split[1]
+		linked_question.getTimes(calendar_client,date,room,answer_box[2])
+
+		calendarAddEvent(answer_box,room,user_id)
 
 def doLinkedQuestion(linked_question,user_id,text):
 	#messageOne(linked_question.head.question,user_id)
@@ -386,7 +398,7 @@ def doLinkedQuestion(linked_question,user_id,text):
 				messageOne(linked_question.head.question,user_id)
 			else:
 				del THREAD_USER_LIST[user_id]
-				sendResults(ANSWER_BOX[user_id],linked_question)
+				sendResults(ANSWER_BOX[user_id],linked_question,user_id)
 				return 1;
 		else:
 			if text != None:
@@ -404,18 +416,20 @@ def getLinkedQuestion(action):
 		question = questions.questionconference()
 		return question
 
-def calendarAddEvent(event_info,room):
+def calendarAddEvent(event_info,room,user_id):
 	# event_info: [summary, location, start, end]
+	split = event_info[1].split("/")
+	date = split[2] + "-" + split[0] + "-" + split[1]
 	event = {
-	  'summary': event_info[0],
-	  'location': event_info[1],
+	  'summary': slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + "'s Reservation",
+	  'location': event_info[0],
 	  'description': 'Conference Room Reservation',
 	  'start': {
-	    'dateTime': event_info[2],
+	    'dateTime': date+"T12:00:00-05:00",
 	    'timeZone': 'America/New_York',
 	  },
 	  'end': {
-	    'dateTime': event_info[3],#'2016-10-28T19:00:00-05:00'
+	    'dateTime': date+"T13:00:00-05:00",#'2016-10-28T19:00:00-05:00'
 	    'timeZone': 'America/New_York',
 	  },
 	  'recurrence': [
@@ -434,7 +448,13 @@ def calendarAddEvent(event_info,room):
 	    ],
 	  },
 	}
-	event = service.events().insert(calendarId=CONFERENCE_CALENDAR_DICT[room], body=event).execute()
+	event = calendar_client.events().insert(calendarId=room, body=event).execute()
+
+	tsvFile = open("conference_reservations.tsv", "a")
+	out = csv.writer(tsvFile, delimiter='\t')
+	out.writerow([user_id,event['id']])
+	tsvFile.close()
+	messageOne("It's booked.",user_id)
 
 
 
@@ -462,12 +482,11 @@ MESSAGE_DICT = \
 }
 
 if __name__ == "__main__":
-	#initaliseQuestions()
 	calendar()
+	#print(calendar_client.calendarList().list().execute())
+
 	CURRENT_DATE = datetime.datetime.strptime(os.environ.get('CURRENT_DATE'),"%Y%m%d")
 	PREVIOUS_REMINDER_DATE = datetime.datetime.strptime(os.environ.get('PREVIOUS_REMINDER_DATE'),"%Y%m%d")
-	print CURRENT_DATE
-	print datetime.datetime.today()
 
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
@@ -556,9 +575,9 @@ if __name__ == "__main__":
 								ANSWER_BOX[user] = []
 								doLinkedQuestion(q,user,text)
 			except (WebSocketConnectionClosedException, SocketError) as e:
-				print("bs caught at " + datetime.datetime.now())
+				print("bs caught at " + str(datetime.datetime.now()))
 				slack_client.rtm_connect()
-				print("reconnected at " + datetime.datetime.now())
+				print("reconnected at " + str(datetime.datetime.now()))
 
 			
 
