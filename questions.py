@@ -117,14 +117,4 @@ class questionconference(linked_list.linkedlist):
 		print out
 
 		return [time_table,out]
-
-class questionconference2(linked_list.linkedlist):
-	conference0 = qn.questionnode(carry_over[1],['yes','no'])
-	conference1 = qn.questionnode("What day do you want the room? _(MM/DD/YYYY)_",['\d{2}/\d{2}/\d{4}'])
-	conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{2}:\d{2}']) 
-	conference0.setNextNode(conference1)
-	conference1.setNextNode(conference2)
-
-	def __init__(self):
-		self.head = self.conference0
 		
