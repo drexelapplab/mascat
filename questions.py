@@ -48,6 +48,7 @@ class questionconference(linked_list.linkedlist):
 		self.conference2.next_node = self.conference3
 		self.head = self.conference0
 		self.answer_box = []
+		self.extra_box = []
 
 	def postTime(self, i):
 		out = ""
@@ -151,8 +152,12 @@ class questionconference(linked_list.linkedlist):
 					i += 1
 		out = out[:-2]
 		out += "."
-
+		
 		return [out,time_table]
+
+	def checkTime(self):
+		time_to_check = self.answer_box[3]
+
 
 	def calendarAddEvent(self):
 		# event_info: [summary, location, start, end]
@@ -218,7 +223,6 @@ class questionconference(linked_list.linkedlist):
 		    ],
 		  },
 		}
-		print "what is myon?"
 		event = self.calendar_client.events().insert(calendarId=room, body=event).execute()
 
 		#tsvFile = open("conference_reservations.tsv", "a")

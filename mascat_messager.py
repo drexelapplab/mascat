@@ -293,7 +293,7 @@ def getEvents(user):
 		else:
 			comps =  row.split("\t")
 			date = parse_date(comps[2])
-			if date > CURRENT_DATE:
+			if date > CURRENT_DATE.date():
 				location = comps[4].decode('utf-8')
 				location = location.rstrip('.')
 				
@@ -411,14 +411,14 @@ MESSAGE_DICT = \
 	Action.card:None,
 	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
 	Action.conference:None,
-	Action.restroom:"The men's bathroom code is [3] and [4] simultaneously, followed by [1]. The women's bathroom doesn't have a password.",
+	Action.restroom:"The bathrooms are located in the back of the building, at the end of the hallway. The men's bathroom code is *3* and *4* simultaneously, followed by *1*. The women's bathroom doesn't need a password.",
 	Action.payroll:"Payroll problems? Fill <https://files.slack.com/files-pri/T0257SBSW-F2LNMHC3W/payroll_resolution_form-open_with_pro.pdf|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
 	Action.generic:None,
-	Action.prout:"The public Repository of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but non-ExCITe personnel need approval.",
+	Action.prout:"The Public Repository Of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but please let <@U04JCJPLY|Lauren> know if anything runs out.",
 	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
-	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. You must be on the 'ExciteResearch' network to use it. Contact <@U04JCJPLY|Lauren> if something's not working.",
+	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. For Airplay, you must be on the 'ExciteResearch' network. Contact <@U04JCJPLY|Lauren> if you need a password logging in.",
 	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231",
-	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need to get in off regular hours, contact <@U04JCJPLY|Lauren> about getting an access card.",
+	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need access outside of these hours, ask me about card access.",
 	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
 	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
 	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks.",
@@ -503,7 +503,7 @@ if __name__ == "__main__":
 							while l[i] != Action.UNLISTED:
 								out += "\t" + unicode("•",'utf-8') + " *" + l[i].name + "*\n"
 								i += 1
-							messageOneWithGreeting("Here's what you can ask me about:\n" + out ,user)
+							messageOneWithGreeting("Here's what you can ask me about:\n" + out + "Can't find what you're looking for? Send a message to <@U04JCJPLY|Lauren> about improving what I know.",user)
 						elif action == Action.hello:
 							hello(user)
 						elif action == Action.pretty:
@@ -515,7 +515,7 @@ if __name__ == "__main__":
 								messageOneWithGreeting(MESSAGE_DICT[action],user)
 							else:
 								q = getLinkedQuestion(action)
-								print q
+
 								THREAD_USER_LIST[user] = q
 								q.user_id = user
 								doLinkedQuestion(q,user,text)
