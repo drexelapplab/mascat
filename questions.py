@@ -5,29 +5,49 @@ import question_node as qn
 import linked_list
 import re
 
+from oauth2client.service_account import ServiceAccountCredentials
+from apiclient.discovery import build
+from httplib2 import Http
+
 class questioncard(linked_list.linkedlist):
-	card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building?",['excite', 'building'])
-	card1 = qn.questionnode("What is your first name?")
-	card2 = qn.questionnode("What is your last name?")
-	card3 = qn.questionnode("If you have a Drexel ID, what is it?")
-	#confirm = qn.questionnode("REPLACE ME")
-	card0.setNextNode(card1)
-	card1.setNextNode(card2)
-	card2.setNextNode(card3)
-	#card3.setNextNode(confirm)
 
 	def __init__(self):
+		self.card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building?",['excite', 'building'])
+		self.card1 = qn.questionnode("What is your first name?")
+		self.card2 = qn.questionnode("What is your last name?")
+		self.card3 = qn.questionnode("If you have a Drexel ID, what is it?")
+		#confirm = qn.questionnode("REPLACE ME")
+		self.card0.next_node = self.card1
+		self.card1.next_node = self.card2
+		self.card2.next_node = self.card3
+		#card3.setNextNode(confirm)
 		self.head = self.card0
+		self.answer_box = []
 
 class questionconference(linked_list.linkedlist):
-	conference0 = qn.questionnode("Trying to book a conference room? Do you want Call(seats 4), Orange(seats 6), or Gray(seats 14)?",['orange','gray','call'])
-	conference1 = qn.questionnode("What day do you want the room? _(MM/DD/YYYY)_",['\d{2}/\d{2}/\d{4}'])
-	conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{2}:\d{2}']) 
-	conference0.setNextNode(conference1)
-	conference1.setNextNode(conference2)
+
+	CONFERENCE_CALENDAR_DICT = \
+	{
+		'orange':'3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com',
+		'gray':'sm2h0b5q9eljcn7gbgcgpsl4fg@group.calendar.google.com',
+		'call':'2sa29nliesjsodri8ss2ug80e4@group.calendar.google.com',
+	}
+
+	scopes = ['https://www.googleapis.com/auth/calendar']
+	credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
+	http_auth = credentials.authorize(Http())
+	calendar_client = build('calendar', 'v3', http=http_auth)
 
 	def __init__(self):
+		self.conference0 = qn.questionnode("Trying to book a conference room? Do you want Call(seats 4), Orange(seats 6), or Gray(seats 14)?",['orange','gray','call'])
+		self.conference1 = qn.questionnode("What day do you want the room? _(MM/DD/YYYY)_",['\d{2}/\d{2}/\d{4}'])
+		self.conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{2}:\d{2}'],self.getTimes) 
+		self.conference3 = qn.questionnode("When do you want to start your meeting? _HH:MM xM_",['\d{2}:\d{2}\s(am|pm)'],self.calendarAddEvent)
+		self.conference0.next_node = self.conference1
+		self.conference1.next_node = self.conference2
+		self.conference2.next_node = self.conference3
 		self.head = self.conference0
+		self.answer_box = []
 
 	def postTime(self, i):
 		out = ""
@@ -47,9 +67,26 @@ class questionconference(linked_list.linkedlist):
 			out += "PM"
 		return out
 
-	def getTimes(self,service,date,calendar,time_needed):
-		time_table = [True] * 48
-		events = service.events().list(calendarId=calendar, timeMin=date+"T00:00:00-05:00", timeMax=date+"T23:59:59-05:00").execute()
+#room = CONFERENCE_CALENDAR_DICT[answer_box[0]]
+#split = answer_box[1].split("/")
+#date = split[2] + "-" + split[0] + "-" + split[1]
+#cont = linked_question.getTimes(calendar_client,date,room,answer_box[2])
+
+	def getTimes(self):
+		starting_hours = 48 # amount of XX:00 or XX:30 times in a day.
+		
+		calendar = self.CONFERENCE_CALENDAR_DICT[self.answer_box[0]]
+		
+		split = self.answer_box[1].split("/")
+		date = split[2] + "-" + split[0] + "-" + split[1]
+
+
+		time_needed = self.answer_box[2]
+
+
+
+		time_table = [True] * starting_hours
+		events = self.calendar_client.events().list(calendarId=calendar, timeMin=date+"T00:00:00-05:00", timeMax=date+"T23:59:59-05:00").execute()
 		
 		#FIRST PASS Checks only if a room is open or closed.
 		for event in events['items']:
@@ -112,9 +149,79 @@ class questionconference(linked_list.linkedlist):
 			else:
 				while time_table[i] == False and i < len(time_table)-1:
 					i += 1
-		out.rstrip(', ')
-		out += ". Any of these starting times look good to you?"
-		print out
+		out = out[:-2]
+		out += "."
 
-		return [time_table,out]
-		
+		return [out,time_table]
+
+	def calendarAddEvent(self):
+		# event_info: [summary, location, start, end]
+
+		event_info = self.answer_box
+		room = self.CONFERENCE_CALENDAR_DICT[event_info[0]]
+		user_id = self.user_id
+
+		split0 = event_info[1].split("/")
+		date = split0[2] + "-" + split0[0] + "-" + split0[1]
+
+		split1 = event_info[3].split(" ")
+		time_prelim = split1[0].split(":")
+		hour = int(time_prelim[0])
+		minute = int(time_prelim[1])
+
+		if split1[1].lower() == "pm" and hour != 12:
+			hour += 12
+
+		split2 = event_info[2].split(":")
+		ehour = int(split2[0])
+		eminute = int(split2[1])
+
+		end_minute = minute + eminute
+		end_hour = hour + ehour
+
+		if end_minute == 60:
+			end_minute = 0
+			end_hour += 1
+
+		if end_hour > 23:
+			end_hour += -24
+
+
+		time_start = "T" + str(hour) + ":" + str(minute) + ":00-05:00"
+		time_end = "T" + str(end_hour) + ":" + str(end_minute) + ":00-05:00"
+
+		event = {
+		  'summary': user_id,
+		  'location': event_info[0],
+		  'description': 'Conference Room Reservation',
+		  'start': {
+		    'dateTime': date+time_start,
+		    'timeZone': 'America/New_York',
+		  },
+		  'end': {
+		    'dateTime': date+time_end,#'2016-10-28T19:00:00-05:00'
+		    'timeZone': 'America/New_York',
+		  },
+		  'recurrence': [
+		    'RRULE:FREQ=DAILY;COUNT=1'
+		  ],
+		  #'attendees': [
+		    #{'email': 'lpage@example.com'},
+		    #{'email': 'sbrin@example.com'},
+		  #],
+		  #'colorId':'6',
+		  'reminders': {
+		    'useDefault': False,
+		    'overrides': [
+		      {'method': 'email', 'minutes': 24 * 60},
+		      {'method': 'popup', 'minutes': 10},
+		    ],
+		  },
+		}
+		print "what is myon?"
+		event = self.calendar_client.events().insert(calendarId=room, body=event).execute()
+
+		#tsvFile = open("conference_reservations.tsv", "a")
+		#out = csv.writer(tsvFile, delimiter='\t')
+		#out.writerow([user_id,event['id']])
+		#tsvFile.close()

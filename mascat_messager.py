@@ -11,10 +11,9 @@ from enum import Enum
 import shutil
 import questions
 from socket import error as SocketError
-from oauth2client.service_account import ServiceAccountCredentials
-from apiclient.discovery import build
-from httplib2 import Http
+
 from websocket import *
+import requests
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -26,7 +25,6 @@ EXAMPLE_COMMAND = "do"
 CURRENT_DATE = datetime.date.today()
 PREVIOUS_REMINDER_DATE = datetime.date.today()
 THREAD_USER_LIST = {} #Users in this list are in a conversation within a thread, and should be ignored by the regular RTM reader.
-ANSWER_BOX = {}
 CONFUSED_USER_LIST = {}
 
 
@@ -154,21 +152,13 @@ EMOTICON_DICT = \
 	10:"┐( ´◟ `)┌ I cannot deny it"
 }
 
-CONFERENCE_CALENDAR_DICT = \
-{
-	'orange':'3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com',
-	'gray':'sm2h0b5q9eljcn7gbgcgpsl4fg@group.calendar.google.com',
-	'call':'2sa29nliesjsodri8ss2ug80e4@group.calendar.google.com',
-}
+
 	
 
 #instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
-scopes = ['https://www.googleapis.com/auth/calendar']
-credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
-http_auth = credentials.authorize(Http())
-calendar_client = build('calendar', 'v3', http=http_auth)
+
 
 def handle_event(user, channel):
 	list = slack_client.api_call("files.list", user=user)
@@ -382,28 +372,24 @@ def sendResults(answer_box,linked_question,user_id):
 		+ "*Drexel ID:* " + answer_box[3]
 		messageOne(out,"U0G0CFKB2")#U04JCJPLY U0G0CFKB2
 
-	elif(isinstance(linked_question, questions.questionconference)):
-		room = CONFERENCE_CALENDAR_DICT[answer_box[0]]
-		split = answer_box[1].split("/")
-		date = split[2] + "-" + split[0] + "-" + split[1]
-		linked_question.getTimes(calendar_client,date,room,answer_box[2])
-
-		calendarAddEvent(answer_box,room,user_id)
-
-def doLinkedQuestion(linked_question,user_id,text):
+def doLinkedQuestion(linked_question,user_id,text=None):
 	#messageOne(linked_question.head.question,user_id)
 	try:
-		if linked_question.head.handleAnswer(text,ANSWER_BOX[user_id]) != 0:
+		me = linked_question.head.handleAnswer(text,linked_question.answer_box)
+		if me != 0:
+			if(linked_question.head.to_run != None):
+				extra = linked_question.head.to_run()
+				if extra and extra[0] != None:
+					messageOne(extra[0],user_id)
 			if(linked_question.next() != 0):
 				messageOne(linked_question.head.question,user_id)
 			else:
 				del THREAD_USER_LIST[user_id]
-				sendResults(ANSWER_BOX[user_id],linked_question,user_id)
+				sendResults(linked_question.answer_box,linked_question,user_id)
 				return 1;
 		else:
 			if text != None:
 				messageOne(linked_question.head.question,user_id)
-
 		
 	except SocketError as e:
 		pass
@@ -415,48 +401,6 @@ def getLinkedQuestion(action):
 	elif action == Action.conference:
 		question = questions.questionconference()
 		return question
-
-def calendarAddEvent(event_info,room,user_id):
-	# event_info: [summary, location, start, end]
-	split = event_info[1].split("/")
-	date = split[2] + "-" + split[0] + "-" + split[1]
-	event = {
-	  'summary': slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + "'s Reservation",
-	  'location': event_info[0],
-	  'description': 'Conference Room Reservation',
-	  'start': {
-	    'dateTime': date+"T12:00:00-05:00",
-	    'timeZone': 'America/New_York',
-	  },
-	  'end': {
-	    'dateTime': date+"T13:00:00-05:00",#'2016-10-28T19:00:00-05:00'
-	    'timeZone': 'America/New_York',
-	  },
-	  'recurrence': [
-	    'RRULE:FREQ=DAILY;COUNT=1'
-	  ],
-	  'attendees': [
-	    {'email': 'lpage@example.com'},
-	    {'email': 'sbrin@example.com'},
-	  ],
-	  'colorId':'6',
-	  'reminders': {
-	    'useDefault': False,
-	    'overrides': [
-	      {'method': 'email', 'minutes': 24 * 60},
-	      {'method': 'popup', 'minutes': 10},
-	    ],
-	  },
-	}
-	event = calendar_client.events().insert(calendarId=room, body=event).execute()
-
-	tsvFile = open("conference_reservations.tsv", "a")
-	out = csv.writer(tsvFile, delimiter='\t')
-	out.writerow([user_id,event['id']])
-	tsvFile.close()
-	messageOne("It's booked.",user_id)
-
-
 
 MESSAGE_DICT = \
 {
@@ -482,7 +426,7 @@ MESSAGE_DICT = \
 }
 
 if __name__ == "__main__":
-	calendar()
+	#calendar()
 	#print(calendar_client.calendarList().list().execute())
 
 	CURRENT_DATE = datetime.datetime.strptime(os.environ.get('CURRENT_DATE'),"%Y%m%d")
@@ -490,6 +434,7 @@ if __name__ == "__main__":
 
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
+	CONNECTION_FAILURE_COUNT = 0
 	if slack_client.rtm_connect():
 
 		#reads_to_ping = PING_FREQUENCY_DELAY
@@ -533,7 +478,6 @@ if __name__ == "__main__":
 						if user in CONFUSED_USER_LIST:
 							CONFUSED_USER_LIST[user] +=1
 						else:
-							newUser(user)
 							CONFUSED_USER_LIST[user] = 1
 
 						if CONFUSED_USER_LIST[user] >= 3:
@@ -571,11 +515,16 @@ if __name__ == "__main__":
 								messageOneWithGreeting(MESSAGE_DICT[action],user)
 							else:
 								q = getLinkedQuestion(action)
+								print q
 								THREAD_USER_LIST[user] = q
-								ANSWER_BOX[user] = []
+								q.user_id = user
 								doLinkedQuestion(q,user,text)
-			except (WebSocketConnectionClosedException, SocketError) as e:
+
+
+			except (WebSocketConnectionClosedException, SocketError, requests.ConnectionError) as e:
 				print("bs caught at " + str(datetime.datetime.now()))
+				CONNECTION_FAILURE_COUNT += 1
+				time.sleep(2 * CONNECTION_FAILURE_COUNT)
 				slack_client.rtm_connect()
 				print("reconnected at " + str(datetime.datetime.now()))
 
