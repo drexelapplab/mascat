@@ -199,7 +199,7 @@ def parse_slack_output(slack_rtm_output):
 						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						#if 'event' in text:
 							#return output['user'], output['channel'], Action.event, output['text']
-						elif 'print' in text:
+						if 'print' in text:
 							return output['user'], output['channel'], Action.printing, output['text']
 						elif 'card' in text:
 							return output['user'], output['channel'], Action.card, output['text']
