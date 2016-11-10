@@ -14,7 +14,14 @@ class questionnode:
 		self.acceptable_answers = aanswers
 		self.to_run = to_run
 
+
+	# -1: EXIT request
+	#  0: No answer to read
+	#  1: Success answer
+	#  2: Failure answer
 	def handleAnswer(self,sin,lout):
+		if sin == "EXIT":
+			return -1
 		r = []
 		for i in range(0,len(self.acceptable_answers)):
 			r.append(re.compile(self.acceptable_answers[i]))

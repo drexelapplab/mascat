@@ -197,16 +197,16 @@ def parse_slack_output(slack_rtm_output):
 						return output['user'], output['channel'], Action.redirect
 					elif is_im and output['user'] not in THREAD_USER_LIST:
 						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
-						if 'event' in text:
-							return output['user'], output['channel'], Action.event, output['text']
+						#if 'event' in text:
+							#return output['user'], output['channel'], Action.event, output['text']
 						elif 'print' in text:
 							return output['user'], output['channel'], Action.printing, output['text']
 						elif 'card' in text:
 							return output['user'], output['channel'], Action.card, output['text']
-						elif 'conference' in text and ('extension' in text or 'phone' in text):
+						elif 'extension' in text or 'phone' in text:
 							return output['user'], output['channel'], Action.extension, output['text']
-						elif 'conference' in text:
-							return output['user'], output['channel'], Action.conference, output['text']
+						#elif 'conference' in text:
+							#return output['user'], output['channel'], Action.conference, output['text']
 						elif 'restroom' in text or 'bathroom' in text:
 							return output['user'], output['channel'], Action.restroom, output['text']
 						elif 'payroll' in text:
@@ -370,26 +370,48 @@ def sendResults(answer_box,linked_question,user_id):
 		+ "*First Name:* " + answer_box[1] + "\n" \
 		+ "*Last Name:* " + answer_box[2] + "\n" \
 		+ "*Drexel ID:* " + answer_box[3]
-		messageOne(out,"U0G0CFKB2")#U04JCJPLY U0G0CFKB2
+		messageOne("Ok, I sent it out.",user_id)
+		messageOne(out,"U04JCJPLY")#U04JCJPLY U0G0CFKB2
 
 def doLinkedQuestion(linked_question,user_id,text=None):
 	#messageOne(linked_question.head.question,user_id)
+	repeat_question = False
 	try:
 		me = linked_question.head.handleAnswer(text,linked_question.answer_box)
-		if me != 0:
+		# If we got a valid answer from the user
+		if me == -1:
+			del THREAD_USER_LIST[user_id]
+			messageOne("Ok, let's talk about something else.",user_id)
+		elif me != 0:
+			# If there's an optional extra function to run after the answer is recorded
 			if(linked_question.head.to_run != None):
 				extra = linked_question.head.to_run()
-				if extra and extra[0] != None:
+
+				# If something went wrong with that function (like an answer failing a test), repeat the current question
+				if extra and extra[0] == 0:
+					#don't pass go, repeat question
+					messageOneWithGreeting("_Are you looking to talk about something else? Type 'EXIT' to end this conversation. Or, keep talking as usual._",user_id)
+					repeat_question = True
+					messageOne(linked_question.head.question,user_id)
+				# If the extra function needs to tell the user something
+				elif extra and isinstance(extra[0],str):
 					messageOne(extra[0],user_id)
-			if(linked_question.next() != 0):
+
+			# If there is another question to move to
+			if(linked_question.head.next_node != None and repeat_question == False):
+				linked_question.head = linked_question.head.next_node
 				messageOne(linked_question.head.question,user_id)
+			elif repeat_question == True:
+				pass
 			else:
 				del THREAD_USER_LIST[user_id]
 				sendResults(linked_question.answer_box,linked_question,user_id)
-				return 1;
 		else:
 			if text != None:
-				messageOne(linked_question.head.question,user_id)
+				linked_question.confused_count += 1
+				if linked_question.confused_count > 1:
+					messageOneWithGreeting("_Are you looking to talk about something else? Type 'EXIT' to end this conversation. Or, keep talking as usual._",user_id)
+				messageOne(linked_question.head.question,user_id)		
 		
 	except SocketError as e:
 		pass
@@ -412,7 +434,7 @@ MESSAGE_DICT = \
 	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
 	Action.conference:None,
 	Action.restroom:"The bathrooms are located in the back of the building, at the end of the hallway. The men's bathroom code is *3* and *4* simultaneously, followed by *1*. The women's bathroom doesn't need a password.",
-	Action.payroll:"Payroll problems? Fill <https://files.slack.com/files-pri/T0257SBSW-F2LNMHC3W/payroll_resolution_form-open_with_pro.pdf|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
+	Action.payroll:"Payroll problems? Fill <http://drexel.edu/~/media/Files/comptroller/payroll/Forms/PayrollResolutionForm2015.ashx?la=en|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
 	Action.generic:None,
 	Action.prout:"The Public Repository Of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but please let <@U04JCJPLY|Lauren> know if anything runs out.",
 	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
@@ -442,7 +464,7 @@ if __name__ == "__main__":
 		while True:
 
 			# See how many days it's been since the last date update.
-			date_delta = datetime.datetime.now() - CURRENT_DATE
+			date_delta = datetime.datetime.now().date() - CURRENT_DATE.date()
 			# If it's been at least a day, update the date and
 			# check if we need to greet any recent new users.
 			if date_delta.days > 0 and datetime.datetime.now().time().hour >= 9:

@@ -9,13 +9,15 @@ from oauth2client.service_account import ServiceAccountCredentials
 from apiclient.discovery import build
 from httplib2 import Http
 
+import datetime
+
 class questioncard(linked_list.linkedlist):
 
 	def __init__(self):
-		self.card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building?",['excite', 'building'])
+		self.card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building? _A building card is only neccessary if you need access between 8:00 PM and 8:00 AM, or on Sundays._",['excite', 'building'])
 		self.card1 = qn.questionnode("What is your first name?")
 		self.card2 = qn.questionnode("What is your last name?")
-		self.card3 = qn.questionnode("If you have a Drexel ID, what is it?")
+		self.card3 = qn.questionnode("If you have a Drexel ID, what is it? _The 8 digit ID_",['\d{8}'])
 		#confirm = qn.questionnode("REPLACE ME")
 		self.card0.next_node = self.card1
 		self.card1.next_node = self.card2
@@ -23,6 +25,8 @@ class questioncard(linked_list.linkedlist):
 		#card3.setNextNode(confirm)
 		self.head = self.card0
 		self.answer_box = []
+		self.extra_box = []
+		self.confused_count = 0
 
 class questionconference(linked_list.linkedlist):
 
@@ -40,7 +44,7 @@ class questionconference(linked_list.linkedlist):
 
 	def __init__(self):
 		self.conference0 = qn.questionnode("Trying to book a conference room? Do you want Call(seats 4), Orange(seats 6), or Gray(seats 14)?",['orange','gray','call'])
-		self.conference1 = qn.questionnode("What day do you want the room? _(MM/DD/YYYY)_",['\d{2}/\d{2}/\d{4}'])
+		self.conference1 = qn.questionnode("What date do you want the room? *(MM/DD/YYYY)* _The date must be within now and next year._",['\d{2}/\d{2}/\d{4}'],self.checkDate)
 		self.conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{2}:\d{2}'],self.getTimes) 
 		self.conference3 = qn.questionnode("When do you want to start your meeting? _HH:MM xM_",['\d{2}:\d{2}\s(am|pm)'],self.calendarAddEvent)
 		self.conference0.next_node = self.conference1
@@ -49,6 +53,7 @@ class questionconference(linked_list.linkedlist):
 		self.head = self.conference0
 		self.answer_box = []
 		self.extra_box = []
+		self.confused_count = 0
 
 	def postTime(self, i):
 		out = ""
@@ -73,10 +78,21 @@ class questionconference(linked_list.linkedlist):
 #date = split[2] + "-" + split[0] + "-" + split[1]
 #cont = linked_question.getTimes(calendar_client,date,room,answer_box[2])
 
+	def checkDate(self):
+		date_in = self.answer_box[1]
+
+		list = date_in.split("/")
+		date_wanted = datetime.date(int(list[2]),int(list[0]),int(list[1]))
+
+		if date_wanted.year - datetime.datetime.today().date().year > 0 or date_wanted < datetime.datetime.today().date():
+			return [0]
+		else:
+			return [1]
+
 	def getTimes(self):
-		starting_hours = 48 # amount of XX:00 or XX:30 times in a day.
+		starting_hours = 24 # amount of XX:00 or XX:30 times in our available timeslot. (8AM to 8PM)
 		
-		calendar = self.CONFERENCE_CALENDAR_DICT[self.answer_box[0]]
+		calendar = self.CONFERENCE_CALENDAR_DICT[self.answer_box[0].lower()]
 		
 		split = self.answer_box[1].split("/")
 		date = split[2] + "-" + split[0] + "-" + split[1]
@@ -140,19 +156,19 @@ class questionconference(linked_list.linkedlist):
 		i = 0
 		while i < len(time_table)-1:
 			if time_table[i] == True:
-				out += self.postTime(i) + " "
+				out += self.postTime(i+16) + " "
 				while time_table[i] == True and i < len(time_table)-1:
 					i += 1
 				if (time_table[i] == False):
-					out += "to " + self.postTime(i-1) + ", "
+					out += "to " + self.postTime(i-1+16) + ", "
 				else:
-					out += "to " + self.postTime(i) + ", "
+					out += "to " + self.postTime(i+16) + ", "
 			else:
 				while time_table[i] == False and i < len(time_table)-1:
 					i += 1
 		out = out[:-2]
 		out += "."
-		
+
 		return [out,time_table]
 
 	def checkTime(self):
@@ -163,7 +179,7 @@ class questionconference(linked_list.linkedlist):
 		# event_info: [summary, location, start, end]
 
 		event_info = self.answer_box
-		room = self.CONFERENCE_CALENDAR_DICT[event_info[0]]
+		room = self.CONFERENCE_CALENDAR_DICT[event_info[0].lower()]
 		user_id = self.user_id
 
 		split0 = event_info[1].split("/")
@@ -197,7 +213,7 @@ class questionconference(linked_list.linkedlist):
 
 		event = {
 		  'summary': user_id,
-		  'location': event_info[0],
+		  'location': event_info[0].lower(),
 		  'description': 'Conference Room Reservation',
 		  'start': {
 		    'dateTime': date+time_start,

@@ -10,9 +10,4 @@ class linkedlist:
 		self.head = head
 		self.answer_box = []
 		self.user_id = ""
-
-	def next(self):
-		if self.head.next_node != None:
-			self.head = self.head.next_node
-		else:
-			return 0
+		self.confused_count = 0
