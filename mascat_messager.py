@@ -370,7 +370,10 @@ def sendResults(answer_box,linked_question,user_id):
 		+ "*First Name:* " + answer_box[1] + "\n" \
 		+ "*Last Name:* " + answer_box[2] + "\n" \
 		+ "*Drexel ID:* " + answer_box[3]
-		messageOne("Ok, I sent it out.",user_id)
+		if answer_box[0].lower() == "excite":
+			messageOne("Ok, I sent it out. Please allow 24-48 hours for access to be approved.",user_id)
+		elif answer_box[0].lower() == "building":
+			messageOne("Ok, I sent it out. If approved for building access, <@U04JCJPLY|Lauren> will contact you within the next 24-48 hours to let you know when and where to get your picture taken and pick up your new card.",user_id)
 		messageOne(out,"U04JCJPLY")#U04JCJPLY U0G0CFKB2
 
 def doLinkedQuestion(linked_question,user_id,text=None):
