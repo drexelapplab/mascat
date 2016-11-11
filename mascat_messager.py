@@ -152,9 +152,9 @@ NIGHT_DICT = \
 	9:"Whuf? Dohn't juhj me. _gulp_ Sometimes I need my late night roe fix. No one's perfect.",
 	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? Who is the president? What is the Constitution? ...I think my roe's expired.",
 	11:"I work nights as a bartender, did you know? I'm about to head out, but I can talk for a bit. After that it'll be time to serve drinks and change lives~",
-	12:"What do you dream of? I'm a computer program prentending to be a pillow pretending to be a cat and I never really sleep. So I'd like to know what it's like.",
+	12:"What do you dream of? I'm a computer program pretending to be a pillow pretending to be a cat and I never really sleep. So I'd like to know what it's like.",
 	13:"Have you ever tried karaoke? It might be a bit embarassing the first time, but it's great for stress, and it's fun whether you're good at singing or not. I'm not good at singing.",
-	14:"Some things weren't meant to be, but that's ok, you can always find something else. Maybe it's hard to see now, but there'll always a 'something else' to find. Huh? What do you mean 'what am I talking about'?",
+	14:"Some things weren't meant to be, but that's ok, there's always something else. Maybe it's hard to see now, but there'll always a 'something else' to find. Huh? What do you mean 'what am I talking about'?",
 }
 
 EMOTICON_DICT = \
