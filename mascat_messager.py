@@ -112,9 +112,9 @@ MORNING_DICT = \
 {
 	1:"It's too early in the morning for me.",
 	2:"Did you eat breakfast?",
-	3:"I wanted to sleep in.",
+	3:"I wanted to sleep in. Or sleep at all, really.",
 	4:"Are you still tired too?",
-	5:"I'd drink coffee, but I'd probably get sick. Cats are sensitive to caffeine.",
+	5:"I'd drink coffee but I'd probably get sick. Cats are sensitive to caffeine, you know.",
 	6:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, standing in solitude with the foreman, watching the sun rise over the site, the grunts carding in for the morning grind below. The cool wind on my face, the smell of iron and in the air... Huh? We're not a construction company?",
 	7:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, alone in my office, the air already musty with cigar smoke. Though it's a shining day outside, only slivers of sun can peek through the shutters. It's still early in the morning, but someone's already rapping on the door, wailing about... Huh? We're not a private investigation agency?",
 	8:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, in the pit with the crew, and old Neubauer's giving me the overview I've already heard a hundred times. I give him a smile though, because you can't deny Alfred, he's a good manager and an even greater man. He traces out Reims-Gueux again with his finger, and I follow, but we already know. We've been ready. He gives me a last slap on the shoulder as I pull the goggles over my eyes and... Huh? We're not a professional racing team?",
@@ -141,7 +141,7 @@ LATE_DICT = \
 
 NIGHT_DICT = \
 {
-	1:"What are you waking me up so late for?",
+	1:"Try not to use your phone in bed. It'll take longer to fall asleep that way.",
 	2:"Take it easy, yeah?",
 	3:"Getting a full night's rest is important, don't stay up too long.",
 	4:"Something you need this late?",
@@ -151,8 +151,9 @@ NIGHT_DICT = \
 	8:"Are you the type of person who showers before bed, or when you wake up? I gotta take it before I sleep, there's no way I'm knocking out in a dirty bed. Also I wake up too late to have time to shower.",
 	9:"Whuf? Dohn't juhj me. _gulp_ Sometimes I need my late night roe fix. No one's perfect.",
 	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? Who is the president? What is the Constitution?",
-	11:"I work nights as a bartender, did you know? I'm about to head out, but I can talk for a bit. But after that it'll be time to serve drinks and change lives~",
-	12:"What do you dream of? I'm just a computer program prentending to be a pillow pretending to be a cat. So I'd like to know what it's like.",
+	11:"I work nights as a bartender, did you know? I'm about to head out, but I can talk for a bit. After that it'll be time to serve drinks and change lives~",
+	12:"What do you dream of? I'm a computer program prentending to be a pillow pretending to be a cat and I never really sleep. So I'd like to know what it's like.",
+	13:"Have you ever tried karaoke? It might be a bit embarassing the first time, but it's great for stress, and it's fun whether you're good at singing or not. I'm not good at singing.",
 }
 
 EMOTICON_DICT = \
@@ -341,8 +342,7 @@ def hello(user):
 		time_text = NIGHT_DICT[random.randint(1,len(NIGHT_DICT))]
 
 	
-	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user)['user']['profile']['first_name'] + ".\n" + time_text
-	messageOne(response,user)
+	messageOneWithGreeting(time_text,user)
 
 
 
