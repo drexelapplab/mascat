@@ -36,10 +36,10 @@ class Action(Enum):
 	# Mascat normal message actions
 	NORMAL = 100
 	help = 101
-	event = 102
+	#event = 102
 	printing = 103
 	card = 104
-	conference = 105
+	#conference = 105
 	restroom = 106
 	payroll = 107
 	prout = 108
@@ -431,11 +431,11 @@ MESSAGE_DICT = \
 {
 	Action.hello:None,
 	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
-	Action.event:None,
+	#Action.event:None,
 	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
 	Action.card:None,
 	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
-	Action.conference:None,
+	#Action.conference:None,
 	Action.restroom:"The bathrooms are located in the back of the building, at the end of the hallway. The men's bathroom code is *3* and *4* simultaneously, followed by *1*. The women's bathroom doesn't need a password.",
 	Action.payroll:"Payroll problems? Fill <http://drexel.edu/~/media/Files/comptroller/payroll/Forms/PayrollResolutionForm2015.ashx?la=en|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
 	Action.generic:None,
@@ -519,8 +519,8 @@ if __name__ == "__main__":
 							doLinkedQuestion(THREAD_USER_LIST[user],user,text)
 						elif action == Action.redirect:
 							herd_to_dm(user,channel,MESSAGE_DICT[action])
-						elif action == Action.event:
-							getEvents(user)
+						#elif action == Action.event:
+							#getEvents(user)
 						elif action == Action.help:
 							out = ""
 							l = list(Action)
