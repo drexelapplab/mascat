@@ -194,48 +194,48 @@ def parse_slack_output(slack_rtm_output):
 					consoletext = output['text']
 					text = output['text'].lower()
 					if not is_im and AT_BOT.lower() in text:
-						return output['user'], output['channel'], Action.redirect
+						return output['user'], output['channel'], Action.redirect, consoletext
 					elif is_im and output['user'] not in THREAD_USER_LIST:
 						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						#if 'event' in text:
 							#return output['user'], output['channel'], Action.event, output['text']
 						if 'print' in text:
-							return output['user'], output['channel'], Action.printing, output['text']
+							return output['user'], output['channel'], Action.printing, consoletext
 						elif 'card' in text:
-							return output['user'], output['channel'], Action.card, output['text']
+							return output['user'], output['channel'], Action.card, consoletext
 						elif 'extension' in text or 'phone' in text:
-							return output['user'], output['channel'], Action.extension, output['text']
+							return output['user'], output['channel'], Action.extension, consoletext
 						#elif 'conference' in text:
 							#return output['user'], output['channel'], Action.conference, output['text']
 						elif 'restroom' in text or 'bathroom' in text:
-							return output['user'], output['channel'], Action.restroom, output['text']
+							return output['user'], output['channel'], Action.restroom, consoletext
 						elif 'payroll' in text:
-							return output['user'], output['channel'], Action.payroll, output['text']
+							return output['user'], output['channel'], Action.payroll, consoletext
 						elif 'prout' in text:
-							return output['user'], output['channel'], Action.prout, output['text']
+							return output['user'], output['channel'], Action.prout, consoletext
 						elif 'dragonfly' in text or 'nea' in text or 'internet' in text:
-							return output['user'], output['channel'], Action.dragonfly, output['text']
+							return output['user'], output['channel'], Action.dragonfly, consoletext
 						elif 'airplay' in text or 'display' in text:
-							return output['user'], output['channel'], Action.airplay, output['text']
+							return output['user'], output['channel'], Action.airplay, consoletext
 						elif 'hours' in text:
-							return output['user'], output['channel'], Action.hours, output['text']
+							return output['user'], output['channel'], Action.hours, consoletext
 						elif 'tour' in text:
-							return output['user'], output['channel'], Action.tour, output['text']
+							return output['user'], output['channel'], Action.tour, consoletext
 						elif 'kitchen' in text:
-							return output['user'], output['channel'], Action.kitchen, output['text']
+							return output['user'], output['channel'], Action.kitchen, consoletext
 						elif 'applab' in text or 'app lab' in text:
-							return output['user'], output['channel'], Action.applab, output['text']
+							return output['user'], output['channel'], Action.applab, consoletext
 						elif 'help' in text:
-							return output['user'], output['channel'], Action.help, output['text']
+							return output['user'], output['channel'], Action.help, consoletext
 						elif 'hello' in text or 'hi' in text or 'hey' in text:
-							return output['user'], output['channel'], Action.hello, output['text']
+							return output['user'], output['channel'], Action.hello, consoletext
 						elif 'pretty' in text:
-							return output['user'], output['channel'], Action.pretty, output['text']
+							return output['user'], output['channel'], Action.pretty, consoletext
 						else:
-							return output['user'], output['channel'], Action.generic, output['text']
+							return output['user'], output['channel'], Action.generic, consoletext
 					elif is_im and output['user'] in THREAD_USER_LIST:
 						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
-						return output['user'], output['channel'], Action.continueLinkedQuestion, output['text']
+						return output['user'], output['channel'], Action.continueLinkedQuestion, consoletext
 	return None,None,None,None
 
 # Takes in a date string such as "1/1/2000" and splits it into a month, day, and year. The month is written out,
@@ -464,6 +464,9 @@ if __name__ == "__main__":
 
 		#reads_to_ping = PING_FREQUENCY_DELAY
 		print("Mascat connected and running.")
+		#response = "Hey, I'm Mascat! I'm here to help you. Send me a DM about anything and I'll try to help you out."
+		#slack_client.api_call("chat.postMessage", channel="C0257SBTA", text=response, as_user=True)
+		#print(response +"\n")
 		while True:
 
 			# See how many days it's been since the last date update.
