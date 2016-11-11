@@ -112,7 +112,7 @@ MORNING_DICT = \
 {
 	1:"It's too early in the morning for me.",
 	2:"Did you eat breakfast?",
-	3:"I wanted to sleep in. Or sleep at all, really.",
+	3:"I wanted to sleep in.",
 	4:"Are you still tired too?",
 	5:"I'd drink coffee but I'd probably get sick. Cats are sensitive to caffeine, you know.",
 	6:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, standing in solitude with the foreman, watching the sun rise over the site, the grunts carding in for the morning grind below. The cool wind on my face, the smell of iron and in the air... Huh? We're not a construction company?",
@@ -127,13 +127,13 @@ NOON_DICT = \
 	2:"What did you eat for lunch?",
 	3:"Look at you, still at it. You're my role model.",
 	4:"Guess what I had for lunch. It was salmon. I'm saving the roe for tonight.",
-	5:"After lunch is when I get the most tired during the day. Lucky for me I don't have to work. Don't you get any ideas though, your livelyhood's on the line.",
+	5:"After lunch is when I get the most tired during the day. Lucky for me I don't have to work. Don't you get any ideas though.",
 }
 
 LATE_DICT = \
 {
 	1:"Isn't it almost time to go home?",
-	2:"Is the sun setting? My eyes are just ink and fabric, so I can't really see the sunset.",
+	2:"Is the sun setting?",
 	3:"What are you getting for dinner?",
 	4:"In a perfect world, I'd eat salmon roe every night.",
 	5:"Stay safe out there.",
