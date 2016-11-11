@@ -509,6 +509,7 @@ if __name__ == "__main__":
 							CONFUSED_USER_LIST[user] = 1
 
 						if CONFUSED_USER_LIST[user] >= 3:
+							del CONFUSED_USER_LIST[user]
 							messageOne("Can't find what you're looking for? Say 'help' to get a list of commands or send a message to <@U04JCJPLY|Lauren> about improving what I know.",user)
 						else:
 							messageOne(getGenericResponse(),user)
