@@ -115,9 +115,9 @@ MORNING_DICT = \
 	3:"I wanted to sleep in.",
 	4:"Are you still tired too?",
 	5:"I'd drink coffee but I'd probably get sick. Cats are sensitive to caffeine, you know.",
-	6:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, standing in solitude with the foreman, watching the sun rise over the site, the grunts carding in for the morning grind below. The cool wind on my face, the smell of iron and in the air... Huh? We're not a construction company?",
+	6:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, standing in solitude with the foreman, watching the sun rise over the site, the workers carding in for the morning grind below. The cool wind on my face, the smell of iron and in the air... Huh? We're not a construction company?",
 	7:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, alone in my office, the air already musty with cigar smoke. Though it's a shining day outside, only slivers of sun can peek through the shutters. It's still early in the morning, but someone's already rapping on the door, wailing about... Huh? We're not a private investigation agency?",
-	8:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, in the pit with the crew, and old Neubauer's giving me the overview I've already heard a hundred times. I give him a smile though, because you can't deny Alfred, he's a good manager and an even greater man. He traces out Reims-Gueux again with his finger, and I follow, but we already know. We've been ready. He gives me a last slap on the shoulder as I pull the goggles over my eyes and... Huh? We're not a professional racing team?",
+	8:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, in the pit with the crew, and old Neubauer's giving me the overview I've already heard a hundred times. I give him a smile though, because you can't deny Alfred, he's a good manager and an even greater man. He traces out Reims-Gueux again with his finger, and I follow, but we already know. We've been ready. He gives me a slap on the shoulder as I pull the goggles over my eyes and... Huh? We're not a professional racing team?",
 
 }
 
@@ -127,7 +127,7 @@ NOON_DICT = \
 	2:"What did you eat for lunch?",
 	3:"Look at you, still at it. You're my role model.",
 	4:"Guess what I had for lunch. It was salmon. I'm saving the roe for tonight.",
-	5:"After lunch is when I get the most tired during the day. Lucky for me I don't have to work. Don't you get any ideas though.",
+	5:"After lunch is when I get the most tired during the day. Lucky for me I don't have to work. Maybe I'll take a nap? You should keep doing whatever you were doing though.",
 }
 
 LATE_DICT = \
@@ -145,15 +145,16 @@ NIGHT_DICT = \
 	2:"Take it easy, yeah?",
 	3:"Getting a full night's rest is important, don't stay up too long.",
 	4:"Something you need this late?",
-	5:"It's Mascat after Dark:\n I'm a normal cat. _Meow._\n I am not a crook. _Meow._\n I am an ordinary high school student. _Meow._\n Tell me I'm pretty. _Meow._",
-	6:"Oh? I wasn't expecting anyone. This is usually when I play video games. I still can't get this combo off, this pretzel motion is ridiculous. Did you need something?",
+	5:"It's Mascat after Dark:\n I'm a normal cat. _Meow._\n I am not a crook. _Meow._\n Tell me I'm pretty. _Meow._",
+	6:"Oh? I wasn't expecting anyone. This is usually when I play video games. I still can't get this combo off, this pretzel motion is too hard. Did you need something?",
 	7:"When it comes to fighting games, I like playing grapplers. Sure, they're never high on the tier list, but their animations are the coolest. Oh, did you need something?",
-	8:"Are you the type of person who showers before bed, or when you wake up? I gotta take it before I sleep, there's no way I'm knocking out in a dirty bed. Also I wake up too late to have time to shower.",
+	8:"Are you the type of person who showers before bed, or when you wake up? I gotta take it before I sleep, there's no way I'm lying in a dirty bed.",
 	9:"Whuf? Dohn't juhj me. _gulp_ Sometimes I need my late night roe fix. No one's perfect.",
-	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? Who is the president? What is the Constitution?",
+	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? Who is the president? What is the Constitution? ...I think my roe's expired.",
 	11:"I work nights as a bartender, did you know? I'm about to head out, but I can talk for a bit. After that it'll be time to serve drinks and change lives~",
 	12:"What do you dream of? I'm a computer program prentending to be a pillow pretending to be a cat and I never really sleep. So I'd like to know what it's like.",
 	13:"Have you ever tried karaoke? It might be a bit embarassing the first time, but it's great for stress, and it's fun whether you're good at singing or not. I'm not good at singing.",
+	14:"Some things weren't meant to be, but that's ok, you can always find something else. Maybe it's hard to see now, but there'll always a 'something else' to find. Huh? What do you mean 'what am I talking about'?",
 }
 
 EMOTICON_DICT = \
