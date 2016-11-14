@@ -215,7 +215,7 @@ def parse_slack_output(slack_rtm_output):
 					if not is_im and AT_BOT.lower() in text:
 						return output['user'], output['channel'], Action.redirect, consoletext
 					elif is_im and output['user'] not in THREAD_USER_LIST:
-						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
+						#print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						#if 'event' in text:
 							#return output['user'], output['channel'], Action.event, output['text']
 						if 'print' in text:
@@ -253,7 +253,7 @@ def parse_slack_output(slack_rtm_output):
 						else:
 							return output['user'], output['channel'], Action.generic, consoletext
 					elif is_im and output['user'] in THREAD_USER_LIST:
-						print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
+						#print(slack_client.api_call("users.info", user=output['user'])['user']['name'] + ": " + consoletext)
 						return output['user'], output['channel'], Action.continueLinkedQuestion, consoletext
 	return None,None,None,None
 
@@ -280,18 +280,18 @@ def messageOne(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
 	response = message_text
 	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=True)
-	print(response +"\n")
+	#print(response +"\n")
 
 def messageOneWithGreeting(message_text, user_id):
 	im = slack_client.api_call("im.open", user=user_id)
 	response = getGreetingResponse() + " " + slack_client.api_call("users.info", user=user_id)['user']['profile']['first_name'] + ". " + message_text
 	slack_client.api_call("chat.postMessage", channel=im['channel']['id'], text=response, as_user=True)
-	print(response +"\n")
+	#print(response +"\n")
 
 def messageChannel(message_text, channel_id):
 	response = "Attención. Soy Mascat y tú amigo."
 	slack_client.api_call("chat.postMessage", channel=channel_id, text=message_text, as_user=True)
-	print(response +"\n")
+	#print(response +"\n")
 
 # Takes a string formatted like "00:00:00AM" and formats it to "00:00AM".
 def parse_time(time_string):
@@ -520,6 +520,7 @@ if __name__ == "__main__":
 						newUser(user)
 
 				elif user and action and action.value > 100:
+					print(slack_client.api_call("users.info", user=user)['user']['name'] + ": " + str(action))
 					if action == Action.generic:
 						if user in CONFUSED_USER_LIST:
 							CONFUSED_USER_LIST[user] +=1
