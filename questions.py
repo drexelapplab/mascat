@@ -45,8 +45,8 @@ class questionconference(linked_list.linkedlist):
 	def __init__(self):
 		self.conference0 = qn.questionnode("Trying to book a conference room? Do you want Call(seats 4), Orange(seats 6), or Gray(seats 14)?",['orange','gray','call'])
 		self.conference1 = qn.questionnode("What date do you want the room? *(MM/DD/YYYY)* _The date must be within now and next year._",['\d{2}/\d{2}/\d{4}'],self.checkDate)
-		self.conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{2}:\d{2}'],self.getTimes) 
-		self.conference3 = qn.questionnode("When do you want to start your meeting? _HH:MM xM_",['\d{2}:\d{2}\s(am|pm)'],self.calendarAddEvent)
+		self.conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{1,2}:\d{2}'],self.getTimes) 
+		self.conference3 = qn.questionnode("When do you want to start your meeting? _HH:MM xM_",['\d{1,2}:\d{2}\s(am|pm)'],self.checkTime)
 		self.conference0.next_node = self.conference1
 		self.conference1.next_node = self.conference2
 		self.conference2.next_node = self.conference3
@@ -105,8 +105,10 @@ class questionconference(linked_list.linkedlist):
 		time_table = [True] * starting_hours
 		events = self.calendar_client.events().list(calendarId=calendar, timeMin=date+"T00:00:00-05:00", timeMax=date+"T23:59:59-05:00").execute()
 		
-		#FIRST PASS Checks only if a room is open or closed.
+		#FIRST PASS Checks only if a room is open or closed at a given time.
 		for event in events['items']:
+
+			# Get the start and end dateTimes from google calender and strip them so only the time remains.
 			start = event['start']['dateTime']
 			end = event['end']['dateTime']
 
@@ -116,6 +118,8 @@ class questionconference(linked_list.linkedlist):
 			end = re.sub('^\d{4}-\d{2}-\d{2}T', '', end)
 			end = re.sub('$:\d{2}-\d{2}:\d{2}', '', end)
 
+
+			# Split the times into hours and minutes
 			s = start.split(':')
 			e = end.split(':')
 
@@ -128,7 +132,7 @@ class questionconference(linked_list.linkedlist):
 				ee += 1
 
 			for i in range(ss,ee):
-				time_table[i] = False
+				time_table[i-16] = False
 
 		#SECOND PASS Checks if the room is open for the time requested.
 		t = time_needed.split(':')
@@ -152,27 +156,64 @@ class questionconference(linked_list.linkedlist):
 								time_table[k] = False
 
 		#OUTPUT BUILDING
-		out = "You can start your meeting any time from "
+		out = "You can start your meeting at these times:\n "
 		i = 0
 		while i < len(time_table)-1:
 			if time_table[i] == True:
-				out += self.postTime(i+16) + " "
+				out += "*" + self.postTime(i+16)
+				start_i = i
 				while time_table[i] == True and i < len(time_table)-1:
 					i += 1
 				if (time_table[i] == False):
-					out += "to " + self.postTime(i-1+16) + ", "
+					if i-1 == start_i:
+						out += "*,\n"
+					else:
+						out += " to " + self.postTime(i-1+16) + "*" + ",\n"
 				else:
-					out += "to " + self.postTime(i+16) + ", "
+					out += " to " + self.postTime(i+16) + "*" + ",\n"
 			else:
 				while time_table[i] == False and i < len(time_table)-1:
 					i += 1
 		out = out[:-2]
 		out += "."
 
+
+		self.extra_box.append(time_table)
 		return [out,time_table]
+		
 
 	def checkTime(self):
-		time_to_check = self.answer_box[3]
+		time_start = self.answer_box[3]
+		time_duration = self.answer_box[2]
+
+		time_table = self.extra_box[0]
+
+		start_split = time_start.split(":")
+		ss_hour = int(start_split[0])
+		ss_split = start_split[1].split(" ")
+		ss_minute = ss_split[0]
+		ss_meridiem = ss_split[1]
+
+		if ss_meridiem.lower() == "pm" and ss_hour != 12:
+			ss_hour += 12
+
+		time_start_index = (ss_hour*2)-16
+
+		if ss_minute == "30":
+			time_start_index += 1
+
+
+		t = time_duration.split(':')
+		hours = int(t[0])
+		minutes = int(t[1])
+		thirtyblocks = (hours*2) + (minutes/30) #an hour counts as 2 thirty minute blocks, 30 minutes counts as 1 thirty minute block. Add them together.
+
+		if time_table[time_start_index] == False:
+			return [0]
+		elif time_table[time_start_index] == True:
+			self.calendarAddEvent()
+			return [1]
+
 
 
 	def calendarAddEvent(self):

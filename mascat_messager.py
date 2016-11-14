@@ -39,7 +39,7 @@ class Action(Enum):
 	#event = 102
 	printing = 103
 	card = 104
-	#conference = 105
+	conference = 105
 	restroom = 106
 	payroll = 107
 	prout = 108
@@ -126,7 +126,7 @@ NOON_DICT = \
 	1:"Do you ever get tired after lunch?",
 	2:"What did you eat for lunch?",
 	3:"Look at you, still at it. You're my role model.",
-	4:"Guess what I had for lunch. It was salmon. I'm saving the roe for tonight.",
+	4:"Guess what I had for lunch. It was salmon. I'm saving the roe for tonight. :gilegs:",
 	5:"After lunch is when I get the most tired during the day. Lucky for me I don't have to work. Maybe I'll take a nap? You should keep doing whatever you were doing though.",
 }
 
@@ -135,7 +135,7 @@ LATE_DICT = \
 	1:"Isn't it almost time to go home?",
 	2:"Is the sun setting?",
 	3:"What are you getting for dinner?",
-	4:"In a perfect world, I'd eat salmon roe every night.",
+	4:"In a perfect world, I'd eat salmon roe every night. :gilegs:",
 	5:"Stay safe out there.",
 }
 
@@ -149,12 +149,15 @@ NIGHT_DICT = \
 	6:"Oh? I wasn't expecting anyone. This is usually when I play video games. I still can't get this combo off, this pretzel motion is too hard. Did you need something?",
 	7:"When it comes to fighting games, I like playing grapplers. Sure, they're never high on the tier list, but their animations are the coolest. Oh, did you need something?",
 	8:"Are you the type of person who showers before bed, or when you wake up? I gotta take it before I sleep, there's no way I'm lying in a dirty bed.",
-	9:"Whuf? Dohn't juhj me. _gulp_ Sometimes I need my late night roe fix. No one's perfect.",
-	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? Who is the president? What is the Constitution? ...I think my roe's expired.",
+	9:"*Whuf? Dohn't juhj me.* _-gulp-_ Sometimes I need my late night roe fix :gilegs:. No one's perfect.",
+	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? ...I think my roe's expired.",
 	11:"I work nights as a bartender, did you know? I'm about to head out, but I can talk for a bit. After that it'll be time to serve drinks and change lives~",
-	12:"What do you dream of? I'm a computer program pretending to be a pillow pretending to be a cat and I never really sleep. So I'd like to know what it's like.",
+	12:"What do you dream of? I'm a computer program pretending to be a pillow pretending to be a cat and I never really sleep. What's it like?",
 	13:"Have you ever tried karaoke? It might be a bit embarassing the first time, but it's great for stress, and it's fun whether you're good at singing or not. I'm not good at singing.",
-	14:"Some things weren't meant to be, but that's ok, there's always something else. Maybe it's hard to see now, but there'll always a 'something else' to find. Huh? What do you mean 'what am I talking about'?",
+	14:"Turn off the computer. Now. Just kidding.",
+	15:"Like with coffee I can't drink alcohol without getting sick, so I've never drunk any. But alcohol itself interests me. I guess I'd say I'm attracted to the colors, or the backstories behind each drink. If I had the money, I'd start a collection, like a shelf of liquid history. Is that corny?",
+	16:"I go on about salmon roe a lot, but I also have a weakness for eel. What's your favorite fish?",
+	17:"'Hair of the dog' is an English phrase that refers to a drink meant to cure a hangover. In older times, it was thought that you could use like to heal like, so if a dog were to bite you, you would apply the hair of that dog to the wound to treat it. Applying this to drinks, it's thought that drinking the same drink that gave you a hangover would help cure it. There are some theories that state drinking the same drink does help alleviate a hangover by affecting the alcohols' metabolisms, but there's no sure answer.",
 }
 
 EMOTICON_DICT = \
@@ -337,7 +340,7 @@ def hello(user):
 		time_text = MORNING_DICT[random.randint(1,len(MORNING_DICT))]
 	elif time.hour >= 12 and time.hour < 16:
 		time_text = NOON_DICT[random.randint(1,len(NOON_DICT))]
-	elif time.hour >= 16 and time.hour < 22:
+	elif time.hour >= 16 and time.hour < 20:
 		time_text = LATE_DICT[random.randint(1,len(LATE_DICT))]
 	else:
 		time_text = NIGHT_DICT[random.randint(1,len(NIGHT_DICT))]
@@ -453,7 +456,7 @@ MESSAGE_DICT = \
 	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
 	Action.card:None,
 	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
-	#Action.conference:None,
+	Action.conference:None,
 	Action.restroom:"The bathrooms are located in the back of the building, at the end of the hallway. The men's bathroom code is *3* and *4* simultaneously, followed by *1*. The women's bathroom doesn't need a password.",
 	Action.payroll:"Payroll problems? Fill <http://drexel.edu/~/media/Files/comptroller/payroll/Forms/PayrollResolutionForm2015.ashx?la=en|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
 	Action.generic:None,
@@ -574,6 +577,7 @@ if __name__ == "__main__":
 				CONNECTION_FAILURE_COUNT += 1
 				time.sleep(2 * CONNECTION_FAILURE_COUNT)
 				slack_client.rtm_connect()
+				CONNECTION_FAILURE_COUNT = 0
 				print("reconnected at " + str(datetime.datetime.now()))
 
 			
