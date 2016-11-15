@@ -481,14 +481,20 @@ if __name__ == "__main__":
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
 	CONNECTION_FAILURE_COUNT = 0
+	PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
+
 	if slack_client.rtm_connect():
 
-		#reads_to_ping = PING_FREQUENCY_DELAY
+		reads_to_ping = PING_FREQUENCY_DELAY
 		print("Mascat connected and running.")
 		#response = "Hey, I'm Mascat! I'm here to help you. Send me a DM about anything and I'll try to help you out."
 		#slack_client.api_call("chat.postMessage", channel="C0257SBTA", text=response, as_user=True)
 		#print(response +"\n")
-		while True:
+		while True:	
+			reads_to_ping -= 1
+			if reads_to_ping == 0:
+				slack_client.server.send_to_websocket({"id":1234, "type":"ping"})
+				reads_to_ping = PING_FREQUENCY_DELAY
 
 			# See how many days it's been since the last date update.
 			date_delta = datetime.datetime.now().date() - CURRENT_DATE.date()
@@ -503,7 +509,7 @@ if __name__ == "__main__":
 					writer = csv.writer(fout, delimiter="\t")
 					for row in csv.reader(fin, delimiter="\t"):
 						if (CURRENT_DATE.date() - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
-							messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions. You've got the touch.",row[0])
+							messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions.",row[0])
 						else:
 							writer.writerow(row)
 				shutil.copy("temp.tsv","new_users.tsv")
