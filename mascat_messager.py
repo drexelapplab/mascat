@@ -36,7 +36,7 @@ class Action(Enum):
 	# Mascat normal message actions
 	NORMAL = 100
 	help = 101
-	#event = 102
+	event = 102
 	printing = 103
 	card = 104
 	conference = 105
@@ -58,6 +58,25 @@ class Action(Enum):
 	generic = 203
 	redirect = 204
 	continueLinkedQuestion = 205
+
+ACTION_DESCRIPTION_DICT = \
+{
+	101:"Lists what I can help you with.",
+
+	103:"How to use the ExCITe printer.",
+	104:"Get card access to ExCITe or the building.",
+
+	106:"Bathroom information.",
+	107:"Get payroll help.",
+	108:"Borrow supplies.",
+	109:"Connect to Wi-Fi.",
+	110:"Project to the big TVs.",
+	111:"Get the phone numbers of the conference rooms.",
+	112:"The ExCITe Center's hours of operation.",
+	113:"Get a tour of ExCITe.",
+	114:"Send a request/comment to the kitchen.",
+	115:"Information about the APP Lab.",
+}
 
 CHANNEL_DICT = \
 {
@@ -197,10 +216,8 @@ def parse_slack_output(slack_rtm_output):
 
 			# Mascat noticing a new user
 			if output and 'type' in output and output['type'] == "team_join":
-				print(output)
 				print("NEW USER " + str(output['user']) + "\n")
-				print(str(output["user"]) + "\n")
-				return str(output['user']), None, Action.newUser
+				return str(output['user']), None, Action.newUser, None
 
 			# Mascat deciding what to say
 			elif output and 'type' in output and 'channel' in output and 'user' in output and output['user'] != BOT_ID and output['user']:
@@ -555,10 +572,12 @@ if __name__ == "__main__":
 							l = list(Action)
 							while l[0] != Action.NORMAL:
 								l.pop(0)
-							l.pop(0)
 							i = 0
 							while l[i] != Action.UNLISTED:
-								out += "\t" + unicode("•",'utf-8') + " *" + l[i].name + "*\n"
+								print str(i) + " " + str(l[i])
+								if i+100 in ACTION_DESCRIPTION_DICT:
+									print "yes"
+									out += "\t" + unicode("•",'utf-8') + " *" + l[i].name + " -* _" + ACTION_DESCRIPTION_DICT[i+100] + "_\n"
 								i += 1
 							messageOneWithGreeting("Here's what you can ask me about:\n" + out + "Can't find what you're looking for? Send a message to <@U04JCJPLY|Lauren> about improving what I know.",user)
 						elif action == Action.hello:
