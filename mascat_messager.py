@@ -574,9 +574,7 @@ if __name__ == "__main__":
 								l.pop(0)
 							i = 0
 							while l[i] != Action.UNLISTED:
-								print str(i) + " " + str(l[i])
 								if i+100 in ACTION_DESCRIPTION_DICT:
-									print "yes"
 									out += "\t" + unicode("•",'utf-8') + " *" + l[i].name + " -* _" + ACTION_DESCRIPTION_DICT[i+100] + "_\n"
 								i += 1
 							messageOneWithGreeting("Here's what you can ask me about:\n" + out + "Can't find what you're looking for? Send a message to <@U04JCJPLY|Lauren> about improving what I know.",user)
