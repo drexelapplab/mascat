@@ -551,7 +551,7 @@ if __name__ == "__main__":
 						newUser(user)
 
 				elif user and action and action.value > 100:
-					print(slack_client.api_call("users.info", user=user)['user']['name'] + ": " + str(action))
+					#print(slack_client.api_call("users.info", user=user)['user']['name'] + ": " + str(action))
 					
 					if action == Action.generic:
 						if user in CONFUSED_USER_LIST:
