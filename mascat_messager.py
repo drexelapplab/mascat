@@ -290,10 +290,10 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.applab, consoletext
 						elif 'help' in text:
 							return output['user'], output['channel'], Action.help, consoletext
-						elif 'hello' in text or 'hi' in text or 'hey' in text or 'yo' in text or 'mascat' in text:
-							return output['user'], output['channel'], Action.hello, consoletext
 						elif 'pretty' in text:
 							return output['user'], output['channel'], Action.pretty, consoletext
+						elif 'hello' in text or 'hi' in text or 'hey' in text or 'yo' in text or 'mascat' in text:
+							return output['user'], output['channel'], Action.hello, consoletext
 						else:
 							return output['user'], output['channel'], Action.generic, consoletext
 					elif is_im and output['user'] in THREAD_USER_LIST:
