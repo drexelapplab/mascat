@@ -14,6 +14,7 @@ from socket import error as SocketError
 
 from websocket import *
 import requests
+import DataCollector
 
 BOT_ID = os.environ.get("BOT_ID")
 
@@ -76,6 +77,29 @@ ACTION_DESCRIPTION_DICT = \
 	113:"Get a tour of ExCITe.",
 	114:"Send a request/comment to the kitchen.",
 	115:"Information about the APP Lab.",
+}
+
+MESSAGE_DICT = \
+{
+	Action.hello:None,
+	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
+	#Action.event:None,
+	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
+	Action.card:None,
+	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
+	Action.conference:None,
+	Action.restroom:"The bathrooms are located in the back of the building, at the end of the hallway. The men's bathroom code is *3* and *4* simultaneously, followed by *1*. The women's bathroom doesn't need a password.",
+	Action.payroll:"Payroll problems? Fill <http://drexel.edu/~/media/Files/comptroller/payroll/Forms/PayrollResolutionForm2015.ashx?la=en|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
+	Action.generic:None,
+	Action.prout:"The Public Repository Of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but please let <@U04JCJPLY|Lauren> know if anything runs out.",
+	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
+	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. For Airplay, you must be on the 'ExciteResearch' network. Contact <@U04JCJPLY|Lauren> if you need a password logging in.",
+	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231",
+	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need access outside of these hours, ask me about card access.",
+	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
+	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
+	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks.",
+	Action.continueLinkedQuestion:None,
 }
 
 CHANNEL_DICT = \
@@ -465,28 +489,7 @@ def getLinkedQuestion(action):
 		question = questions.questionconference()
 		return question
 
-MESSAGE_DICT = \
-{
-	Action.hello:None,
-	Action.redirect:"Baby, we can chat, but not here. Send me a DM.",
-	#Action.event:None,
-	Action.printing:"To use the ExCITe printer, visit <http://144.118.173.220:8000/rps/pprint.cgi|our printing website>, enter '101' as the department user, and hit log in. There's no password. The ExCITe printer is located in the EGS.",
-	Action.card:None,
-	#"Looking for card access? Contact <@U04JCJPLY|Lauren> for more information.",
-	Action.conference:None,
-	Action.restroom:"The bathrooms are located in the back of the building, at the end of the hallway. The men's bathroom code is *3* and *4* simultaneously, followed by *1*. The women's bathroom doesn't need a password.",
-	Action.payroll:"Payroll problems? Fill <http://drexel.edu/~/media/Files/comptroller/payroll/Forms/PayrollResolutionForm2015.ashx?la=en|this> out and submit it to <@U04JCJPLY|Lauren>. You need an Adobe Reader to open it though. If you have issues with it you can ask Lauren for a printed copy from her desk by the piano.",
-	Action.generic:None,
-	Action.prout:"The Public Repository Of Useful Things, or PROUT, is a collection of supplies and tools located in the Market space near the piano. Anyone can borrow these but please let <@U04JCJPLY|Lauren> know if anything runs out.",
-	Action.dragonfly:"Need internet access? Fill <https://trello-attachments.s3.amazonaws.com/5632515fc4c137d65df17d8a/56325241e75242adc10d19fd/8011fbde5a2fc760de5d9eb4069dc261/NEA_Template.pdf|this> out and submit it to <@U04JCJPLY|Lauren> for approval.",
-	Action.airplay:"There are five TV displays for use: Market, Orange Room, Market Kitchen, Workshop, and Gray Room. You can connect to these displays in three ways. HDMI, VGA, or Mac Airplay. For Airplay, you must be on the 'ExciteResearch' network. Contact <@U04JCJPLY|Lauren> if you need a password logging in.",
-	Action.extension:"Here are the conference room phone number extensions: ORANGE:215.571.4492 - CONF:215.571.4496 - CALL#1:215.571.4231",
-	Action.hours:"The building hours are M-F 7:30 AM - 9:00 PM, Saturday 8:00 AM - 4:00 PM. If you need access outside of these hours, ask me about card access.",
-	Action.tour:"Want a tour of ExCITe? Contact <@U04JCJPLY|Lauren>. Please add information about date, time, and how many people will be expected. Also add information about age if the tour is for a school group.",
-	Action.kitchen:"Comments on the kitchen? Requests? Send them <http://bit.ly/KitchenFeedback|here>. Submissions are anonymous, so add your name if you want a response back.",
-	Action.applab:"The APP Lab is a programming space where people can come to work and get advice on their mobile app projects. Open hours are Tuesday, 5:00 PM - 7:00 PM. Come to Appy Hour every second Tuesday of the month at 5:30 PM to meet other developers and hear talks.",
-	Action.continueLinkedQuestion:None,
-}
+
 
 if __name__ == "__main__":
 	#calendar()
@@ -547,6 +550,7 @@ if __name__ == "__main__":
 
 				elif user and action and action.value > 100:
 					print(slack_client.api_call("users.info", user=user)['user']['name'] + ": " + str(action))
+					DataCollector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action))
 					if action == Action.generic:
 						if user in CONFUSED_USER_LIST:
 							CONFUSED_USER_LIST[user] +=1
