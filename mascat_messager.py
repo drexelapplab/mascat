@@ -264,7 +264,7 @@ def parse_slack_output(slack_rtm_output):
 							#return output['user'], output['channel'], Action.event, output['text']
 						if 'print' in text:
 							return output['user'], output['channel'], Action.printing, consoletext
-						elif 'card' in text:
+						elif 'card' in text or 'access' in text:
 							return output['user'], output['channel'], Action.card, consoletext
 						elif 'extension' in text or 'phone' in text:
 							return output['user'], output['channel'], Action.extension, consoletext
@@ -505,6 +505,8 @@ if __name__ == "__main__":
 
 	if slack_client.rtm_connect():
 
+		data_collector = DataCollector.datacollector()
+
 		reads_to_ping = PING_FREQUENCY_DELAY
 		print("Mascat connected and running.")
 		#response = "Hey, I'm Mascat! I'm here to help you. Send me a DM about anything and I'll try to help you out."
@@ -550,7 +552,7 @@ if __name__ == "__main__":
 
 				elif user and action and action.value > 100:
 					print(slack_client.api_call("users.info", user=user)['user']['name'] + ": " + str(action))
-					DataCollector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action))
+					
 					if action == Action.generic:
 						if user in CONFUSED_USER_LIST:
 							CONFUSED_USER_LIST[user] +=1
@@ -597,6 +599,7 @@ if __name__ == "__main__":
 								THREAD_USER_LIST[user] = q
 								q.user_id = user
 								doLinkedQuestion(q,user,text)
+					data_collector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action))
 
 
 			except (WebSocketConnectionClosedException, SocketError, requests.ConnectionError) as e:
