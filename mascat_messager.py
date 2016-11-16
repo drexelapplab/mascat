@@ -599,7 +599,8 @@ if __name__ == "__main__":
 								THREAD_USER_LIST[user] = q
 								q.user_id = user
 								doLinkedQuestion(q,user,text)
-					data_collector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action))
+					if user != "U034LKGHE" and user != "U0G0CFKB2": # We don't want to count the programmers' test usage
+						data_collector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action))
 
 
 			except (WebSocketConnectionClosedException, SocketError, requests.ConnectionError) as e:

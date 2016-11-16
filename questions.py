@@ -12,7 +12,6 @@ from httplib2 import Http
 import datetime
 
 class questioncard(linked_list.linkedlist):
-
 	def __init__(self):
 		self.card0 = qn.questionnode("Need an access card? Is it for just ExCITe or is it for the building? _A building card is only neccessary if you need access between 8:00 PM and 8:00 AM, or on Sundays._",['excite', 'building'])
 		self.card1 = qn.questionnode("What is your first name?")
@@ -29,7 +28,6 @@ class questioncard(linked_list.linkedlist):
 		self.confused_count = 0
 
 class questionconference(linked_list.linkedlist):
-
 	CONFERENCE_CALENDAR_DICT = \
 	{
 		'orange':'3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com',

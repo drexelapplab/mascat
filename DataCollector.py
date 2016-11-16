@@ -65,10 +65,6 @@ class datacollector():
 	    service = discovery.build('sheets', 'v4', http=http,
 	                              discoveryServiceUrl=discoveryUrl)
 
-
-
-	    #result = service.spreadsheets().create()
-
 	    spreadsheetId = '1cMLc7hbRG64R7Fbd_mc0QfXjuN71QG1OEY3leYYWhas'
 	    rangeName = 'Sheet1!A1:B1'
 	    valueInputOption = 'RAW'
@@ -80,20 +76,8 @@ class datacollector():
 	    	]
 	    }
 
-
 	    result = service.spreadsheets().values().append(
 	    	spreadsheetId=spreadsheetId, range=rangeName, valueInputOption=valueInputOption, body=body).execute()
-	    #result = service.spreadsheets().values().get(
-	    #    spreadsheetId=spreadsheetId, range=rangeName).execute()
-	    #values = result.get('values', [])
-
-	    #if not values:
-	    #    print('No data found.')
-	    #else:
-	    #    print('Name, Major:')
-	    #    for row in values:
-	            # Print columns A and E, which correspond to indices 0 and 4.
-	    #        print('%s, %s' % (row[0], row[4]))
 
 
 if __name__ == '__main__':
