@@ -608,7 +608,7 @@ if __name__ == "__main__":
 				time.sleep(2 * CONNECTION_FAILURE_COUNT)
 				slack_client.rtm_connect()
 				CONNECTION_FAILURE_COUNT = 0
-				print("reconnected at " + str(datetime.datetime.now()))
+				print("reconnected at " + str(datetime.datetime.now()) + "\n")
 
 			
 
