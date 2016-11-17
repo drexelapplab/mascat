@@ -600,7 +600,7 @@ if __name__ == "__main__":
 								q.user_id = user
 								doLinkedQuestion(q,user,text)
 					if user != "U034LKGHE" and user != "U0G0CFKB2": # We don't want to count the programmers' test usage
-						data_collector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action))
+						data_collector.append(str(slack_client.api_call("users.info", user=user)['user']['name']),str(action),str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
 			except (WebSocketConnectionClosedException, SocketError, requests.ConnectionError) as e:

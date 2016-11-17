@@ -27,6 +27,26 @@ class questioncard(linked_list.linkedlist):
 		self.extra_box = []
 		self.confused_count = 0
 
+class questionconferencestart(linked_list.linkedlist):
+	def __init__(self):
+		self.q0 = qn.questionnode("Need a conference room? Do you want to make a new reservation or edit an old one?",['new','edit'],self.finish)
+		self.head = self.q0
+		self.answer_box = []
+		self.extra_box = []
+		self.confused_count = 0
+
+	def finish(self):
+		if self.answer_box[0].lower() == "new":
+			#STARTQUESTIONCONFERENCE
+			print "hi"
+		elif self.answer_box[1].lower() == "edit":
+			#STARTQUESTIONCONFERENCEEDIT
+			print "hi"
+		else:
+			return 0
+
+
+
 class questionconference(linked_list.linkedlist):
 	CONFERENCE_CALENDAR_DICT = \
 	{

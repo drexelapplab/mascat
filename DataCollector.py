@@ -51,7 +51,7 @@ class datacollector():
 	        print('Storing credentials to ' + credential_path)
 	    return credentials
 
-	def append(self, username, action):
+	def append(self, username, action, time):
 	    """Shows basic usage of the Sheets API.
 
 	    Creates a Sheets API service object and prints the names and majors of
@@ -66,13 +66,13 @@ class datacollector():
 	                              discoveryServiceUrl=discoveryUrl)
 
 	    spreadsheetId = '1cMLc7hbRG64R7Fbd_mc0QfXjuN71QG1OEY3leYYWhas'
-	    rangeName = 'Sheet1!A1:B1'
+	    rangeName = 'Sheet1!A1:C1'
 	    valueInputOption = 'RAW'
 	    body = {
-	    	'range': 'Sheet1!A1:B1',
+	    	'range': 'Sheet1!A1:C1',
 	    	'majorDimension': 'ROWS',
 	    	'values': [
-	    		[username, action],
+	    		[username, action, time],
 	    	]
 	    }
 

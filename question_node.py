@@ -16,9 +16,8 @@ class questionnode:
 
 
 	# -1: EXIT request
-	#  0: No answer to read
+	#  0: No answer to read or bad answer
 	#  1: Success answer
-	#  2: Failure answer
 	def handleAnswer(self,sin,lout):
 		if sin == "EXIT":
 			return -1
