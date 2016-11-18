@@ -38,12 +38,62 @@ class questionconferencestart(linked_list.linkedlist):
 	def finish(self):
 		if self.answer_box[0].lower() == "new":
 			#STARTQUESTIONCONFERENCE
-			print "hi"
-		elif self.answer_box[1].lower() == "edit":
+			print "new"
+		elif self.answer_box[0].lower() == "edit":
 			#STARTQUESTIONCONFERENCEEDIT
-			print "hi"
+			print "edit"
 		else:
 			return 0
+
+class questionconferenceedit(linked_list.linkedlist):
+	CONFERENCE_CALENDAR_DICT = \
+	{
+		'orange':'3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com',
+		'gray':'sm2h0b5q9eljcn7gbgcgpsl4fg@group.calendar.google.com',
+		'call':'2sa29nliesjsodri8ss2ug80e4@group.calendar.google.com',
+	}
+
+	scopes = ['https://www.googleapis.com/auth/calendar']
+	credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
+	http_auth = credentials.authorize(Http())
+	calendar_client = build('calendar', 'v3', http=http_auth)
+
+	def __init__(self):
+		self.q0 = qn.questionnode("Say 'yeah' if you're ready to edit!",['yeah'],self.getReservations)
+		self.q1 = qn.questionnode("What do you ")
+		self.head = self.q0
+		self.answer_box = []
+		self.extra_box = []
+		self.confused_count = 0
+
+	def getReservations(self):
+		user_id = self.user_id
+		event_box = []
+
+		#dates should be from the current day, to the next year.
+		date = datetime.date.today()
+		date_plus_year = datetime.date(int(date.year)+1,date.month,date.day)
+
+		date = str(date)
+		date_plus_year = str(date_plus_year)
+
+		print date
+		print date_plus_year
+
+		for room in self.CONFERENCE_CALENDAR_DICT:
+			events = self.calendar_client.events().list(calendarId=self.CONFERENCE_CALENDAR_DICT[room], timeMin=date+"T08:00:00-05:00", timeMax=date_plus_year+"T19:59:59-05:00").execute()
+			
+			for event in events['items']:
+				if event['summary'] == user_id:
+					event_box.append(event)
+
+		out = "You have reservations at: \n"
+		for i in event_box:
+			out += str(i['start']['dateTime'] + " to " + i['end']['dateTime'] + "\n")
+
+		return [out]
+
+
 
 
 
@@ -61,10 +111,10 @@ class questionconference(linked_list.linkedlist):
 	calendar_client = build('calendar', 'v3', http=http_auth)
 
 	def __init__(self):
-		self.conference0 = qn.questionnode("Trying to book a conference room? Do you want Call(seats 4), Orange(seats 6), or Gray(seats 14)?",['orange','gray','call'])
+		self.conference0 = qn.questionnode("Ok, let's set you up with a reservation then. Do you want Call(seats 4), Orange(seats 6), or Gray(seats 14)?",['orange','gray','call'])
 		self.conference1 = qn.questionnode("What date do you want the room? *(MM/DD/YYYY)* _The date must be within now and next year._",['\d{2}/\d{2}/\d{4}'],self.checkDate)
-		self.conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded of to the nearest 30 minutes._",['\d{1,2}:\d{2}'],self.getTimes) 
-		self.conference3 = qn.questionnode("When do you want to start your meeting? _HH:MM xM_",['\d{1,2}:\d{2}\s(am|pm)'],self.checkTime)
+		self.conference2 = qn.questionnode("How long do you need the room for? _(HH:MM) Minutes will be rounded off to the nearest 30 minutes._",['\d{1,2}:\d{2}'],self.getTimes) 
+		self.conference3 = qn.questionnode("When do you want to start your meeting? _HH:MM AM/PM_",['\d{1,2}:\d{2}\s(am|pm)'],self.checkTime)
 		self.conference0.next_node = self.conference1
 		self.conference1.next_node = self.conference2
 		self.conference2.next_node = self.conference3
@@ -121,7 +171,7 @@ class questionconference(linked_list.linkedlist):
 
 
 		time_table = [True] * starting_hours
-		events = self.calendar_client.events().list(calendarId=calendar, timeMin=date+"T00:00:00-05:00", timeMax=date+"T23:59:59-05:00").execute()
+		events = self.calendar_client.events().list(calendarId=calendar, timeMin=date+"T08:00:00-05:00", timeMax=date+"T19:59:59-05:00").execute()
 		
 		#FIRST PASS Checks only if a room is open or closed at a given time.
 		for event in events['items']:

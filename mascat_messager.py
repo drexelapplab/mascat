@@ -127,20 +127,20 @@ MONTH_DICT = \
 
 GENERIC_DICT = \
 {
-	1:"Meong.",
-	2:"Miau.",
-	3:"Mjau.",
-	4:"Miaou.",
-	5:"喵喵.",
-	6:"ニャー.",
-	7:"야옹.",
-	8:"Мияу-мияу.",
-	9:"Mjá.",
-	10:"Meow.",
-	11:"מְיָאוּ.",
-	12:".مُواَء",
-	13:"เมี้ยว.",
-	14:"Miao.",
+	1:"Meong. That was in Indonesian. I have no idea what you said.",
+	2:"Miau. That's 'meow' in a lot of different languages. I didn't understand what you meant.",
+	3:"Mjau. That was in Swedish and Norwegian. Dunno what you just said.",
+	4:"Miaou. That was in French. It means I don't understand. (It doesn't really.)",
+	5:"喵. That was in Mandarin. Sorry, I don't know what you said.",
+	6:"ニャー. That was in Japanese. I'm not catching what you're saying.",
+	7:"야옹. That was in Korean. I'm picking up a lot of static on my end, what did you say?",
+	8:"Мияу-мияу. That was in Kazakh. What did you say?",
+	9:"Mjá. That was in Icelandic. I didn't understand your words.",
+	10:"Meow. That was in English, but you probably already knew that. But did you know I didn't understand what you just said?",
+	11:"מְיָאוּ. That was in Yiddish. You're confusing me with your words.",
+	12:".مُواَء That was in Arabic. Sorry, I'm not sure of what you said.",
+	13:"เมี้ยว. That was in Thai. I don't understand.",
+	14:"Miao. That was in Italian. I can't figure out what you said.",
 }
 
 GREETING_DICT = \
@@ -160,7 +160,7 @@ MORNING_DICT = \
 	5:"I'd drink coffee but I'd probably get sick. Cats are sensitive to caffeine, you know.",
 	6:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, standing in solitude with the foreman, watching the sun rise over the site, the workers carding in for the morning grind below. The cool wind on my face, the smell of iron and in the air... Huh? We're not a construction company?",
 	7:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, alone in my office, the air already musty with cigar smoke. Though it's a shining day outside, only slivers of sun can peek through the shutters. It's still early in the morning, but someone's already rapping on the door, wailing about... Huh? We're not a private investigation agency?",
-	8:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, in the pit with the crew, and old Neubauer's giving me the overview I've already heard a hundred times. I give him a smile though, because you can't deny Alfred, he's a good manager and an even greater man. He traces out Reims-Gueux again with his finger, and I follow, but we already know. We've been ready. He gives me a slap on the shoulder as I pull the goggles over my eyes and... Huh? We're not a professional racing team?",
+	8:"Do you think if I pressed salmon roe into a cup, I could drink it as if it were coffee? That's my dream, to drink a cup in the morning, in the pit with the crew, and old Neubauer's giving me the overview I've already heard a hundred times. I give him a smile though, because you can't deny Alfred, he's a good manager. He traces out Reims-Gueux again with his finger, and I follow, but we already know. We've been ready. He gives me a slap on the shoulder as I pull the goggles over my eyes and... Huh? We're not a professional racing team?",
 
 }
 
@@ -189,32 +189,37 @@ NIGHT_DICT = \
 	3:"Getting a full night's rest is important, don't stay up too long.",
 	4:"Something you need this late?",
 	5:"It's Mascat after Dark:\n I'm a normal cat. _Meow._\n I am not a crook. _Meow._\n Tell me I'm pretty. _Meow._",
-	6:"Oh? I wasn't expecting anyone. This is usually when I play video games. I still can't get this combo off, this pretzel motion is too hard. Did you need something?",
-	7:"When it comes to fighting games, I like playing grapplers. Sure, they're never high on the tier list, but their animations are the coolest. Oh, did you need something?",
-	8:"Are you the type of person who showers before bed, or when you wake up? I gotta take it before I sleep, there's no way I'm lying in a dirty bed.",
+	6:"That's my secret cap. I wear it when no one else is looking.",
+	7:"When it comes to fighting games, I like playing grapplers. Sure, they're never high on the tier list, but their animations are the coolest. Did you need something?",
+	8:"Are you the type of person who showers before bed, or when you wake up? I gotta take it before I sleep, I can't get into bed knowing I'm still dirty.",
 	9:"*Whuf? Dohn't juhj me.* _-gulp-_ Sometimes I need my late night roe fix :gilegs:. No one's perfect.",
-	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? ...I think my roe's expired.",
+	10:"If I were a real cat, would I get to eat real food? Live a real life? What is real? ...My roe expired, and I'm starting to see pink rabbits in the side of my vision. Call a doctor.",
 	11:"I work nights as a bartender, did you know? I'm about to head out, but I can talk for a bit. After that it'll be time to serve drinks and change lives~",
 	12:"What do you dream of? I'm a computer program pretending to be a pillow pretending to be a cat and I never really sleep. What's it like?",
 	13:"Have you ever tried karaoke? It might be a bit embarassing the first time, but it's great for stress, and it's fun whether you're good at singing or not. I'm not good at singing.",
 	14:"Turn off the computer. Now. Just kidding.",
 	15:"Like with coffee I can't drink alcohol without getting sick, so I've never drunk any. But alcohol itself interests me. I guess I'd say I'm attracted to the colors, or the backstories behind each drink. If I had the money, I'd start a collection, like a shelf of liquid history. Is that corny?",
 	16:"I go on about salmon roe a lot, but I also have a weakness for eel. What's your favorite fish?",
-	17:"'Hair of the dog' is an English phrase that refers to a drink meant to cure a hangover. In older times, it was thought that you could use like to heal like, so if a dog were to bite you, you would apply the hair of that dog to the wound to treat it. Applying this to drinks, it's thought that drinking the same drink that gave you a hangover would help cure it. There are some theories that state drinking the same drink does help alleviate a hangover by affecting the alcohols' metabolisms, but there's no sure answer.",
+	17:"'Hair of the dog' is an English phrase that refers to a drink meant to cure a hangover. In older times, it was thought that you could use like to heal like, so if a dog were to bite you, you would apply the hair of that dog to the wound to treat it. Applying this to drinks, it's thought that drinking the same drink that gave you a hangover can help cure it. There are some theories that say drinking the same drink does help alleviate a hangover by affecting the alcohols' metabolisms, but I don't know enough about it.",
+	18:"'Bartender, I'll have a single plum, floating in perfume, served in a man's hat.' That's a real order I got once. Definitely didn't take that from a TV show.",
+	19:"If you uploaded your mind to a computer, would it really be living forever? The real you would still be in your original body, and you'd still die. It'd be a copy of you that lives on. I think it'd have to be something like transferring your brain into a shell to really live forever, but how long can a brain last for?",
+	20:"Have you ever heard of '808 Cowbell'? It's an old digital instrument on the Roland TR-808 made to sound like a cowbell, except it doesn't sound like a cowbell at all. That didn't stop it from being used in songs during the 80's though. Once you hear it, you'll start to notice it in other songs too. Penpineappleapplepen.",
+	21:"If you're ever playing a shmup and get frustrated with how many bullets there are on screen, it might help to know that the part of your ship that can actually take damage is usually really really small, much smaller than what it looks like. Pretend your ship is a lot smaller than it is, and it could help you take in the situation more easily.",
+	22:"If you're ever playing a fighting game and you're losing every match, try jumping less. In most games jumping will leave you defenseless in the air so you'll be vulnerable to an opponent who knows what they're doing. A jump is a tool, not a main method of transport, yeah?",
+	23:"When it comes to racing, it's best to start turns from the outside of the track, pull in towards the inner bend, then exit the turn on the outside again. While this does increase your lap _distance_, it reduces the amount of turning you have to do, keeping your speed higher than if you just slammed the brakes and hugged the corner. And that'll shave your lap _time_. Don't forget to take the other racers and the track environment into consideration though. Following good theory is good, but don't fall into auto-pilot.",
 }
 
 EMOTICON_DICT = \
 {
 	1:"(  ˊ - ˋ)ノ thanks...",
 	2:"\\(^o^)/",
-	3:":moo:",
-	4:"\\(:϶」∠)_",
-	5:"⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄",
-	6:"(σˋ▽ˊ)σ you are also the best!",
-	7:"( ≧‿≦)",
-	8:"(-﹏-。) p l s",
-	9:"(;¯⌓¯) you're embarassing me, please",
-	10:"┐( ´◟ `)┌ I cannot deny it"
+	3:"\\(:϶」∠)_",
+	4:"⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄",
+	5:"(σˋ▽ˊ)σ you are also the best!",
+	6:"( ≧‿≦)",
+	7:"(-﹏-。) p l s",
+	8:"(;¯⌓¯) you're embarassing me, please",
+	9:"┐( ´◟ `)┌ I cannot deny it"
 }
 
 
@@ -438,6 +443,16 @@ def sendResults(answer_box,linked_question,user_id):
 			messageOne("Ok, I sent it out. If approved for building access, <@U04JCJPLY|Lauren> will contact you within the next 1-2 business days to let you know when and where to get your picture taken and pick up your new card.",user_id)
 		messageOne(out,"U04JCJPLY")#U04JCJPLY U0G0CFKB2
 
+	if(isinstance(linked_question, questions.questionconferencestart)):
+		if answer_box[0].lower() == "new":
+			q = questions.questionconference()
+		elif answer_box[0].lower() == "edit":
+			q = questions.questionconferenceedit()
+		THREAD_USER_LIST[user] = q
+		q.user_id = user
+		doLinkedQuestion(q,user_id,None)
+
+
 def doLinkedQuestion(linked_question,user_id,text=None):
 	#messageOne(linked_question.head.question,user_id)
 	repeat_question = False
@@ -486,7 +501,7 @@ def getLinkedQuestion(action):
 		question = questions.questioncard()
 		return question
 	elif action == Action.conference:
-		question = questions.questionconference()
+		question = questions.questionconferencestart()
 		return question
 
 
