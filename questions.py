@@ -29,7 +29,7 @@ class questioncard(linked_list.linkedlist):
 
 class questionconferencestart(linked_list.linkedlist):
 	def __init__(self):
-		self.q0 = qn.questionnode("Need a conference room? Do you want to make a new reservation or edit an old one?",['new','edit'],self.finish)
+		self.q0 = qn.questionnode("Need a conference room? Do you want to make a *new* reservation or *edit* an old one?",['new','edit'],self.finish)
 		self.head = self.q0
 		self.answer_box = []
 		self.extra_box = []
@@ -42,6 +42,24 @@ class questionconferencestart(linked_list.linkedlist):
 		elif self.answer_box[0].lower() == "edit":
 			#STARTQUESTIONCONFERENCEEDIT
 			print "edit"
+		else:
+			return 0
+
+class questionconferencestart2(linked_list.linkedlist):
+	def __init__(self):
+		self.q0 = qn.questionnode("Do you want to *reschedule* a reservation or just *delete* it?",['reschedule','delete'],self.finish)
+		self.head = self.q0
+		self.answer_box = []
+		self.extra_box = []
+		self.confused_count = 0
+
+	def finish(self):
+		if self.answer_box[0].lower() == "reschedule":
+			#STARTQUESTIONCONFERENCE  #BUYING LEAVES 5K EACH @@@@@@@@@@@@@@@@@@
+			print "reschedule"
+		elif self.answer_box[0].lower() == "delete":
+			#STARTQUESTIONCONFERENCEEDIT #S> ILBIS 50MIL @@@@@@@@@@@@@@@@@@@@@@@@
+			print "delete"
 		else:
 			return 0
 
@@ -60,8 +78,9 @@ class questionconferenceedit(linked_list.linkedlist):
 
 	def __init__(self):
 		self.q0 = qn.questionnode("Say 'yeah' if you're ready to edit!",['yeah'],self.getReservations)
-		self.q1 = qn.questionnode("What do you ")
+		self.q1 = qn.questionnode("Which event do you want to reschedule?",['\d+'],self.removeReservation)
 		self.head = self.q0
+		self.q0.next_node = self.q1
 		self.answer_box = []
 		self.extra_box = []
 		self.confused_count = 0
@@ -72,26 +91,79 @@ class questionconferenceedit(linked_list.linkedlist):
 
 		#dates should be from the current day, to the next year.
 		date = datetime.date.today()
-		date_plus_year = datetime.date(int(date.year)+1,date.month,date.day)
-
+		date_plus_year = str(datetime.date(int(date.year)+1,date.month,date.day))
 		date = str(date)
-		date_plus_year = str(date_plus_year)
-
-		print date
-		print date_plus_year
 
 		for room in self.CONFERENCE_CALENDAR_DICT:
 			events = self.calendar_client.events().list(calendarId=self.CONFERENCE_CALENDAR_DICT[room], timeMin=date+"T08:00:00-05:00", timeMax=date_plus_year+"T19:59:59-05:00").execute()
 			
 			for event in events['items']:
 				if event['summary'] == user_id:
-					event_box.append(event)
+					event_box.append([event,self.CONFERENCE_CALENDAR_DICT[room]])
 
 		out = "You have reservations at: \n"
+		num = 1
 		for i in event_box:
-			out += str(i['start']['dateTime'] + " to " + i['end']['dateTime'] + "\n")
+			start = i[0]['start']['dateTime']
+			end = i[0]['end']['dateTime']
 
+			date = start[:10]
+			sdate = date.split("-")
+			date = sdate[1] + "/" + sdate[2] + "/" + sdate[0]
+
+			start = re.sub('^\d{4}-\d{2}-\d{2}T', '', start)
+			start = re.sub(':\d{2}-\d{2}:\d{2}$', '', start)
+
+			end = re.sub('^\d{4}-\d{2}-\d{2}T', '', end)
+			end = re.sub(':\d{2}-\d{2}:\d{2}$', '', end)
+
+			if int(start[:2]) > 12:
+				start = str(int(start[:2])-12)+start[2:]+" PM"
+			else:
+				start = str(int(start[:2]))+start[2:]+" AM"
+
+			if int(end[:2]) > 12:
+				end = str(int(end[:2])-12)+end[2:]+" PM"
+			else:
+				end = str(int(end[:2]))+end[2:]+" AM"
+
+			out += str("*" + str(num) + "*: " + i[0]['location'][:1].upper() + i[0]['location'][1:] + " - " + date + ", " + start + " to " + end + "\n")
+			num += 1
+
+
+		self.extra_box.append(event_box)
 		return [out]
+
+	def removeReservation(self):
+		if int(self.answer_box[1]) not in range(0+1,len(self.extra_box[0])+1):
+			return [0]
+		choice = int(self.answer_box[1])-1
+		event = self.extra_box[0][choice][0]['id']
+		room = self.extra_box[0][choice][1]
+		self.calendar_client.events().delete(calendarId=room, eventId=event).execute()
+
+
+class questionconferencedelete(questionconferenceedit):
+	CONFERENCE_CALENDAR_DICT = \
+	{
+		'orange':'3356ejp7m6494c2eaipsb4tnjk@group.calendar.google.com',
+		'gray':'sm2h0b5q9eljcn7gbgcgpsl4fg@group.calendar.google.com',
+		'call':'2sa29nliesjsodri8ss2ug80e4@group.calendar.google.com',
+	}
+
+	scopes = ['https://www.googleapis.com/auth/calendar']
+	credentials = ServiceAccountCredentials.from_json_keyfile_name('Mascat-c45fe465c3ab.json', scopes=scopes)
+	http_auth = credentials.authorize(Http())
+	calendar_client = build('calendar', 'v3', http=http_auth)
+
+	def __init__(self):
+		self.q0 = qn.questionnode("Say 'yeah' if you're ready to delete!",['yeah'],self.getReservations)
+		self.q1 = qn.questionnode("Which event do you want to delete?",['\d+'],self.removeReservation)
+		self.head = self.q0
+		self.q0.next_node = self.q1
+		self.answer_box = []
+		self.extra_box = []
+		self.confused_count = 0
 
 
 
@@ -179,12 +251,14 @@ class questionconference(linked_list.linkedlist):
 			# Get the start and end dateTimes from google calender and strip them so only the time remains.
 			start = event['start']['dateTime']
 			end = event['end']['dateTime']
-
+			print start
 			start = re.sub('^\d{4}-\d{2}-\d{2}T', '', start)
-			start = re.sub('$:\d{2}-\d{2}:\d{2}', '', start)
+			print start
+			start = re.sub(':\d{2}-\d{2}:\d{2}$', '', start)
+			print start
 
 			end = re.sub('^\d{4}-\d{2}-\d{2}T', '', end)
-			end = re.sub('$:\d{2}-\d{2}:\d{2}', '', end)
+			end = re.sub(':\d{2}-\d{2}:\d{2}$', '', end)
 
 
 			# Split the times into hours and minutes

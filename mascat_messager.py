@@ -273,8 +273,8 @@ def parse_slack_output(slack_rtm_output):
 							return output['user'], output['channel'], Action.card, consoletext
 						elif 'extension' in text or 'phone' in text:
 							return output['user'], output['channel'], Action.extension, consoletext
-						#elif 'conference' in text:
-							#return output['user'], output['channel'], Action.conference, output['text']
+						elif 'conference' in text or 'reserve' in text:
+							return output['user'], output['channel'], Action.conference, output['text']
 						elif 'restroom' in text or 'bathroom' in text:
 							return output['user'], output['channel'], Action.restroom, consoletext
 						elif 'payroll' in text:
@@ -447,9 +447,27 @@ def sendResults(answer_box,linked_question,user_id):
 		if answer_box[0].lower() == "new":
 			q = questions.questionconference()
 		elif answer_box[0].lower() == "edit":
+			q = questions.questionconferencestart2()
+		THREAD_USER_LIST[user_id] = q
+		q.user_id = user_id
+		messageOne(q.head.question,user_id)
+		doLinkedQuestion(q,user_id,None)
+
+	if(isinstance(linked_question, questions.questionconferencestart2)):
+		if answer_box[0].lower() == "reschedule":
 			q = questions.questionconferenceedit()
-		THREAD_USER_LIST[user] = q
-		q.user_id = user
+		elif answer_box[0].lower() == "delete":
+			q = questions.questionconferencedelete()
+		THREAD_USER_LIST[user_id] = q
+		q.user_id = user_id
+		messageOne(q.head.question,user_id)
+		doLinkedQuestion(q,user_id,None)
+
+	if(isinstance(linked_question, questions.questionconferenceedit)):
+		q = questions.questionconference()
+		THREAD_USER_LIST[user_id] = q
+		q.user_id = user_id
+		messageOne(q.head.question,user_id)
 		doLinkedQuestion(q,user_id,None)
 
 
@@ -505,14 +523,37 @@ def getLinkedQuestion(action):
 		return question
 
 
-
-if __name__ == "__main__":
-	#calendar()
-	#print(calendar_client.calendarList().list().execute())
-
+def checkTime():
 	CURRENT_DATE = datetime.datetime.strptime(os.environ.get('CURRENT_DATE'),"%Y%m%d")
 	PREVIOUS_REMINDER_DATE = datetime.datetime.strptime(os.environ.get('PREVIOUS_REMINDER_DATE'),"%Y%m%d")
+	# See how many days it's been since the last date update.
+	date_delta = datetime.datetime.now().date() - CURRENT_DATE.date()
+	# If it's been at least a day, update the date and
+	# check if we need to greet any recent new users.
+	if date_delta.days > 0 and datetime.datetime.now().time().hour >= 9:
+		print("New Day\n")
+		CURRENT_DATE = datetime.datetime.today()
+		os.environ['CURRENT_DATE'] = CURRENT_DATE.strftime("%Y%m%d")
 
+		with open('new_users.tsv', 'rb') as fin, open('temp.tsv', 'wb') as fout:
+			writer = csv.writer(fout, delimiter="\t")
+			for row in csv.reader(fin, delimiter="\t"):
+				if (CURRENT_DATE.date() - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
+					messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions.",row[0])
+				else:
+					writer.writerow(row)
+		shutil.copy("temp.tsv","new_users.tsv")
+		os.remove("temp.tsv")
+
+	if CURRENT_DATE.month != PREVIOUS_REMINDER_DATE.month:
+		print("New Month\n")
+		PREVIOUS_REMINDER_DATE = CURRENT_DATE
+		os.environ['PREVIOUS_REMINDER_DATE'] = PREVIOUS_REMINDER_DATE.strftime("%Y%m%d")
+		#Attención. Soy Mascat y tú amigo.
+		messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",CHANNEL_DICT['general'])
+
+
+if __name__ == "__main__":
 	#PING_FREQUENCY_DELAY = 100 # amount of reads to do between each ping
 	READ_WEBSOCKET_DELAY = 0.2 # delay between reading from firehose in seconds
 	CONNECTION_FAILURE_COUNT = 0
@@ -533,31 +574,6 @@ if __name__ == "__main__":
 				slack_client.server.send_to_websocket({"id":1234, "type":"ping"})
 				reads_to_ping = PING_FREQUENCY_DELAY
 
-			# See how many days it's been since the last date update.
-			date_delta = datetime.datetime.now().date() - CURRENT_DATE.date()
-			# If it's been at least a day, update the date and
-			# check if we need to greet any recent new users.
-			if date_delta.days > 0 and datetime.datetime.now().time().hour >= 9:
-				print("New Day\n")
-				CURRENT_DATE = datetime.datetime.today()
-				os.environ['CURRENT_DATE'] = CURRENT_DATE.strftime("%Y%m%d")
-
-				with open('new_users.tsv', 'rb') as fin, open('temp.tsv', 'wb') as fout:
-					writer = csv.writer(fout, delimiter="\t")
-					for row in csv.reader(fin, delimiter="\t"):
-						if (CURRENT_DATE.date() - datetime.datetime.strptime(row[1],"%Y%m%d").date()).days >= 1:
-							messageOneWithGreeting("Welcome to the ExCITe Slack team. I'm Mascat. Ask me questions.",row[0])
-						else:
-							writer.writerow(row)
-				shutil.copy("temp.tsv","new_users.tsv")
-				os.remove("temp.tsv")
-
-			if CURRENT_DATE.month != PREVIOUS_REMINDER_DATE.month:
-				print("New Month\n")
-				PREVIOUS_REMINDER_DATE = CURRENT_DATE
-				os.environ['PREVIOUS_REMINDER_DATE'] = PREVIOUS_REMINDER_DATE.strftime("%Y%m%d")
-				#Attención. Soy Mascat y tú amigo.
-				messageChannel("I'm Mascat. Send me a DM if you have questions about ExCITe and I'll try to help.",CHANNEL_DICT['general'])
 
 			try:
 				user, channel, action, text = parse_slack_output(slack_client.rtm_read())
@@ -625,9 +641,6 @@ if __name__ == "__main__":
 				slack_client.rtm_connect()
 				CONNECTION_FAILURE_COUNT = 0
 				print("reconnected at " + str(datetime.datetime.now()) + "\n")
-
-			
-
 			
 			time.sleep(READ_WEBSOCKET_DELAY)
 	else:
